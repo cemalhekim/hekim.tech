@@ -2,80 +2,61 @@ import type { Site, Page, Links, Socials } from "@types"
 
 // Global
 export const SITE: Site = {
-  TITLE: "Astro Sphere",
-  DESCRIPTION: "Welcome to Astro Sphere, a portfolio and blog for designers and developers.",
-  AUTHOR: "Mark Horn",
+  TITLE: "Cemal Hekim",
+  DESCRIPTION: "Robotics engineer in Berlin and Düsseldorf: humanoids, lab automation, AI agents and the tools around them.",
+  AUTHOR: "Cemal Hekim",
 }
 
 // Work Page
 export const WORK: Page = {
-  TITLE: "Work",
-  DESCRIPTION: "Places I have worked.",
+  TITLE: "Experience",
+  DESCRIPTION: "Where I have worked and studied.",
 }
 
 // Blog Page
 export const BLOG: Page = {
-  TITLE: "Blog",
-  DESCRIPTION: "Writing on topics I am passionate about.",
+  TITLE: "Notes",
+  DESCRIPTION: "Write-ups on robots, agents and the homelab that runs this site.",
 }
 
-// Projects Page 
+// Projects Page
 export const PROJECTS: Page = {
   TITLE: "Projects",
-  DESCRIPTION: "Recent projects I have worked on.",
+  DESCRIPTION: "Robots, retrofits, agents and tools I have built.",
 }
 
 // Search Page
 export const SEARCH: Page = {
   TITLE: "Search",
-  DESCRIPTION: "Search all posts and projects by keyword.",
+  DESCRIPTION: "Search notes and projects by keyword.",
 }
 
 // Links
 export const LINKS: Links = [
-  { 
-    TEXT: "Home", 
-    HREF: "/", 
-  },
-  { 
-    TEXT: "Work", 
-    HREF: "/work", 
-  },
-  { 
-    TEXT: "Blog", 
-    HREF: "/blog", 
-  },
-  { 
-    TEXT: "Projects", 
-    HREF: "/projects", 
-  },
+  { TEXT: "Home", HREF: "/" },
+  { TEXT: "Experience", HREF: "/work" },
+  { TEXT: "Projects", HREF: "/projects" },
+  { TEXT: "Notes", HREF: "/blog" },
 ]
 
 // Socials
 export const SOCIALS: Socials = [
-  { 
+  {
     NAME: "Email",
-    ICON: "email", 
-    TEXT: "markhorn.dev@gmail.com",
-    HREF: "mailto:markhorn.dev@gmail.com",
+    ICON: "email",
+    TEXT: "cemal@hekim.tech",
+    HREF: "mailto:cemal@hekim.tech",
   },
-  { 
-    NAME: "Github",
+  {
+    NAME: "GitHub",
     ICON: "github",
-    TEXT: "markhorn-dev",
-    HREF: "https://github.com/markhorn-dev/astro-sphere"
+    TEXT: "cemalhekim",
+    HREF: "https://github.com/cemalhekim",
   },
-  { 
+  {
     NAME: "LinkedIn",
     ICON: "linkedin",
-    TEXT: "markhorn-dev",
-    HREF: "https://www.linkedin.com/in/markhorn-dev/",
-  },
-  { 
-    NAME: "Twitter",
-    ICON: "twitter-x",
-    TEXT: "markhorn_dev",
-    HREF: "https://twitter.com/markhorn_dev",
+    TEXT: "cemalhekim",
+    HREF: "https://www.linkedin.com/in/cemalhekim/",
   },
 ]
-

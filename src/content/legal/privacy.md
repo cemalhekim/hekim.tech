@@ -1,28 +1,12 @@
 ---
-title: "Privacy Policy"
-date: "03/07/2024"
+title: "Privacy"
+date: "09/08/2026"
 ---
 
-This Privacy Policy governs the manner in which [Your Company Name] collects, uses, maintains, and discloses information collected from users (each, a "User") of the [Your Website URL] website ("Site"). This privacy policy applies to the Site and all products and services offered by [Your Company Name].
+This site is a static personal portfolio. It sets no cookies, runs no analytics and loads no third-party scripts or fonts.
 
-#### Personal identification information
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras sit amet massa ut neque consequat congue. Sed id ipsum vitae sem imperdiet suscipit. Nulla facilisi. Morbi quis nibh at nunc pulvinar rhoncus. Proin porttitor dapibus dolor, id fermentum urna eleifend et. In feugiat pretium erat nec vestibulum.
+**Hosting.** The pages are served from a private server through Cloudflare's network. Cloudflare processes connection data (IP address, request headers) to deliver the site and protect it; see Cloudflare's privacy policy for details. No server-side logs are kept beyond what the reverse proxy writes for operational debugging, and those are rotated automatically.
 
-#### Non-personal identification information
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras sit amet massa ut neque consequat congue. Sed id ipsum vitae sem imperdiet suscipit. Nulla facilisi. Morbi quis nibh at nunc pulvinar rhoncus. Proin porttitor dapibus dolor, id fermentum urna eleifend et. In feugiat pretium erat nec vestibulum.
+**Contact.** If you email cemal@hekim.tech, your message and address are stored in the mailbox for as long as the correspondence is relevant. Nothing is shared with third parties.
 
-#### Web browser cookies
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras sit amet massa ut neque consequat congue. Sed id ipsum vitae sem imperdiet suscipit. Nulla facilisi. Morbi quis nibh at nunc pulvinar rhoncus. Proin porttitor dapibus dolor, id fermentum urna eleifend et. In feugiat pretium erat nec vestibulum.
-
-#### How we use collected information
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras sit amet massa ut neque consequat congue. Sed id ipsum vitae sem imperdiet suscipit. Nulla facilisi. Morbi quis nibh at nunc pulvinar rhoncus. Proin porttitor dapibus dolor, id fermentum urna eleifend et. In feugiat pretium erat nec vestibulum.
-
-#### How we protect your information
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras sit amet massa ut neque consequat congue. Sed id ipsum vitae sem imperdiet suscipit. Nulla facilisi. Morbi quis nibh at nunc pulvinar rhoncus. Proin porttitor dapibus dolor, id fermentum urna eleifend et. In feugiat pretium erat nec vestibulum.
-
-#### Sharing your personal information
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras sit amet massa ut neque consequat congue. Sed id ipsum vitae sem imperdiet suscipit. Nulla facilisi. Morbi quis nibh at nunc pulvinar rhoncus. Proin porttitor dapibus dolor, id fermentum urna eleifend et. In feugiat pretium erat nec vestibulum.
-
-#### Changes to this privacy policy
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras sit amet massa ut neque consequat congue. Sed id ipsum vitae sem imperdiet suscipit. Nulla facilisi. Morbi quis nibh at nunc pulvinar rhoncus. Proin porttitor dapibus dolor, id fermentum urna eleifend et. In feugiat pretium erat nec vestibulum.
-
+**Your rights (GDPR).** You can ask what data exists about you, request correction or deletion, by writing to the address above.
