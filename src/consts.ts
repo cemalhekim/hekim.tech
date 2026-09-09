@@ -9,8 +9,8 @@ export const SITE: Site = {
 
 // Work Page
 export const WORK: Page = {
-  TITLE: "Experience",
-  DESCRIPTION: "Robots, labs and companies I have worked with, newest first.",
+  TITLE: "Experience and Education",
+  DESCRIPTION: "Where I have worked and studied, newest first.",
 }
 
 // Blog Page
