@@ -18,6 +18,7 @@ const education = defineCollection({
     school: z.string(),
     dateStart: z.coerce.date(),
     dateEnd: z.union([z.coerce.date(), z.string()]),
+    muted: z.boolean().optional(),
     degrees: z.array(
       z.object({
         title: z.string(),
