@@ -5,6 +5,7 @@ import ArrowCard from "@components/ArrowCard"
 import RobotHero from "@components/RobotHero.astro"
 import WorldMap from "@components/WorldMap.astro"
 import { SITE, SOCIALS } from "@consts"
+import { Icon } from "astro-icon/components"
 
 const posts = (await getCollection("blog"))
   .filter(post => !post.data.draft)
@@ -19,34 +20,58 @@ const projects = (await getCollection("projects"))
 const capabilities = [
   {
     code: "01",
+    icon: "lucide:bot",
     title: "Humanoids & manipulation",
     text: "Telemetry, teleoperation and control stacks for humanoids and arms: Unitree H1-2, Franka Panda, UR5e/UR10e, xArm.",
     tags: ["ROS 2", "DDS", "MuJoCo", "MoveIt"],
   },
   {
     code: "02",
+    icon: "lucide:factory",
     title: "Lab & process automation",
     text: "Robot cells that run unattended: sample handling, 30-hour measurement campaigns, welding and QC lines.",
     tags: ["ABB", "KUKA", "Microcontrollers", "Vision"],
   },
   {
     code: "03",
+    icon: "lucide:brain-circuit",
     title: "AI agents on real hardware",
     text: "LLM agents that plan tasks, drive devices and talk to people, from a bilingual Pepper to a lab-wide agent platform.",
     tags: ["Claude", "Local LLMs", "MCP", "Speech"],
   },
   {
     code: "04",
+    icon: "lucide:server",
     title: "Tooling & infrastructure",
     text: "The stack around the robots: AI-assisted CAD, web dashboards, containers and the home server that serves this page.",
     tags: ["FreeCAD", "TypeScript", "Docker", "Caddy"],
   },
 ]
 
-const stack = [
-  "ROS 2", "Python", "C++", "TypeScript", "MuJoCo", "Gazebo", "MoveIt", "PyTorch",
-  "YOLO", "FreeCAD", "Docker", "Linux", "Unitree H1-2", "Pepper", "Franka Panda",
-  "UR5e / UR10e", "ABB", "KUKA", "Claude & local LLMs",
+// Brand marks from Simple Icons (CC0) where one exists; the rest render as text.
+const stack: { name: string; icon?: string }[] = [
+  { name: "ROS 2", icon: "simple-icons:ros" },
+  { name: "Python", icon: "simple-icons:python" },
+  { name: "C++", icon: "simple-icons:cplusplus" },
+  { name: "TypeScript", icon: "simple-icons:typescript" },
+  { name: "PyTorch", icon: "simple-icons:pytorch" },
+  { name: "YOLO", icon: "simple-icons:ultralytics" },
+  { name: "OpenCV", icon: "simple-icons:opencv" },
+  { name: "MuJoCo" },
+  { name: "Gazebo" },
+  { name: "MoveIt" },
+  { name: "FreeCAD", icon: "simple-icons:freecad" },
+  { name: "Docker", icon: "simple-icons:docker" },
+  { name: "Linux", icon: "simple-icons:linux" },
+  { name: "Caddy", icon: "simple-icons:caddy" },
+  { name: "Tailscale", icon: "simple-icons:tailscale" },
+  { name: "Unitree H1-2" },
+  { name: "Pepper" },
+  { name: "Franka Panda" },
+  { name: "UR5e / UR10e" },
+  { name: "ABB", icon: "simple-icons:abb" },
+  { name: "KUKA" },
+  { name: "Claude & local LLMs", icon: "simple-icons:claude" },
 ]
 ---
 
@@ -115,8 +140,13 @@ const stack = [
         <div class="mt-8 grid gap-4 sm:grid-cols-2">
           {capabilities.map((c) => (
             <div class="card p-5">
-              <div class="flex items-baseline justify-between">
-                <div class="font-mono text-xs text-accent">{c.code}</div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex size-8 items-center justify-center rounded border border-accent/30 bg-accent/10 text-accent">
+                    <Icon name={c.icon} class="size-4" />
+                  </span>
+                  <div class="font-mono text-xs text-accent">{c.code}</div>
+                </div>
                 <div class="font-mono text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40">module</div>
               </div>
               <div class="mt-3 font-semibold text-black dark:text-white">{c.title}</div>
@@ -165,7 +195,10 @@ const stack = [
         <h2 class="mt-2 text-2xl md:text-3xl font-bold text-black dark:text-white">Tools and platforms</h2>
         <div class="mt-6 flex flex-wrap gap-2">
           {stack.map((t) => (
-            <span class="chip !text-xs !normal-case !tracking-normal py-1 px-3 hover:border-accent hover:text-accent blend">{t}</span>
+            <span class="chip inline-flex items-center gap-1.5 !text-xs !normal-case !tracking-normal py-1 px-3 hover:border-accent hover:text-accent blend">
+              {t.icon && <Icon name={t.icon} class="size-3.5" />}
+              {t.name}
+            </span>
           ))}
         </div>
       </section>
@@ -199,6 +232,7 @@ const stack = [
           <div class="flex flex-col gap-2 font-mono text-sm">
             {SOCIALS.map(social => (
               <a href={social.HREF} target="_blank" class="group flex items-center gap-3 text-black/70 dark:text-white/70 hover:text-accent blend">
+                <Icon name={social.ICON === "email" ? "lucide:mail" : `simple-icons:${social.ICON}`} class="size-4 text-black/40 dark:text-white/40 group-hover:text-accent blend" />
                 <span class="w-16 text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 group-hover:text-accent/70">{social.NAME}</span>
                 <span>{social.TEXT}</span>
               </a>
