@@ -1,0 +1,120 @@
+---
+/**
+ * WorkPage.astro
+ * Experience and education, two timelines side by side. Rendered once per
+ * language by src/pages/work/index.astro and src/pages/[lang]/work/index.astro.
+ */
+import { getCollection } from "astro:content"
+import PageLayout from "@layouts/PageLayout.astro"
+import { DICT, type Lang } from "@i18n"
+
+type Props = { lang: Lang }
+const { lang } = Astro.props
+const t = DICT[lang]
+
+const byStart = (a: { data: { dateStart: Date } }, b: { data: { dateStart: Date } }) =>
+  new Date(b.data.dateStart).getTime() - new Date(a.data.dateStart).getTime()
+
+const work = await Promise.all(
+  (await getCollection("work")).sort(byStart).map(async (item) => {
+    const { Content } = await item.render()
+    return { ...item, Content }
+  })
+)
+
+const education = await Promise.all(
+  (await getCollection("education")).sort(byStart).map(async (item) => {
+    const { Content } = await item.render()
+    return { ...item, Content }
+  })
+)
+
+const monthLocale = { en: "en-US", de: "de-DE", tr: "tr-TR" }[lang]
+function formatDate(input: Date | string | undefined) {
+  if (input === undefined) return ""
+  if (typeof input === "string") return input === "Now" ? t.now : input
+  const month = input.toLocaleDateString(monthLocale, { month: "short" }).replace(".", "")
+  return `${month} ${new Date(input).getFullYear()}`
+}
+const localized = (entry: { data: { de?: string; tr?: string } }) => (lang === "en" ? null : entry.data[lang] ?? null)
+---
+
+<PageLayout title={t.work.title} description={t.work.description} lang={lang}>
+  <div class="pt-32 pb-5">
+    <div class="mx-auto w-full max-w-screen-lg px-5">
+      <div class="animate">
+        <div class="label">{t.work.label}</div>
+        <h1 class="text-3xl font-semibold text-black dark:text-white mt-2">
+          {t.work.title}
+        </h1>
+        <div class="mt-1">
+          {t.work.description}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex-1 py-5">
+    <div class="mx-auto w-full max-w-screen-lg px-5 grid gap-12 md:grid-cols-2">
+
+      <!-- Work -->
+      <section>
+        <div class="animate label mb-6" data-delay="150">{t.work.work}</div>
+        <ol class="relative border-l border-black/10 dark:border-white/15 ml-2">
+          {
+            work.map((entry, i) => (
+              <li class="animate relative pl-8 pb-10 last:pb-0" data-delay={300 + i * 150}>
+                <span class={`absolute -left-[5px] top-1.5 size-[9px] rounded-full ${i === 0 ? "bg-accent shadow-[0_0_0_4px_rgb(var(--accent)/0.2)]" : "bg-black/30 dark:bg-white/30"}`}></span>
+                <div class="font-mono text-[11px] uppercase tracking-wider text-black/50 dark:text-white/50 mb-2">
+                  {formatDate(entry.data.dateStart)} — {formatDate(entry.data.dateEnd)}
+                </div>
+                <div class="text-black dark:text-white font-semibold">
+                  {entry.data.company}
+                </div>
+                <div class="text-sm text-accent">
+                  {entry.data.role}
+                </div>
+                <article class="prose dark:prose-invert !pb-0 mt-2 text-sm">
+                  {localized(entry) ? <p>{localized(entry)}</p> : <entry.Content />}
+                </article>
+              </li>
+            ))
+          }
+        </ol>
+      </section>
+
+      <!-- Education, same timing as the work column -->
+      <section>
+        <div class="animate label mb-6" data-delay="150">{t.work.education}</div>
+        <ol class="relative border-l border-black/10 dark:border-white/15 ml-2">
+          {
+            education.map((entry, i) => (
+              <li class="animate relative pl-8 pb-10 last:pb-0" data-delay={300 + i * 150}>
+                <span class={`absolute -left-[5px] top-1.5 size-[9px] rounded-full ${i === 0 ? "bg-accent shadow-[0_0_0_4px_rgb(var(--accent)/0.2)]" : "bg-black/30 dark:bg-white/30"}`}></span>
+                <div class="font-mono text-[11px] uppercase tracking-wider text-black/50 dark:text-white/50 mb-2">
+                  {formatDate(entry.data.dateStart)} — {formatDate(entry.data.dateEnd)}
+                </div>
+                <div class="text-black dark:text-white font-semibold">
+                  {entry.data.school}
+                </div>
+                {entry.data.degrees.map((d) => (
+                  <div class={`text-sm text-accent flex flex-wrap items-baseline gap-x-2 ${d.muted ? "opacity-45" : ""}`}>
+                    <span>{d.title}</span>
+                    {d.dateStart && (
+                      <span class="font-mono text-[10px] uppercase tracking-wider text-black/50 dark:text-white/50">
+                        {formatDate(d.dateStart)} — {formatDate(d.dateEnd)}
+                      </span>
+                    )}
+                  </div>
+                ))}
+                <article class="prose dark:prose-invert !pb-0 mt-2 text-sm">
+                  {localized(entry) ? <p>{localized(entry)}</p> : <entry.Content />}
+                </article>
+              </li>
+            ))
+          }
+        </ol>
+      </section>
+    </div>
+  </div>
+</PageLayout>

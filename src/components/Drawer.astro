@@ -1,33 +1,36 @@
 ---
-import { SITE, LINKS } from "@consts"
 import { cn } from "@lib/utils"
-const { pathname } = Astro.url
-const subpath = pathname.match(/[^/]+/g)
+import LangSwitch from "@components/LangSwitch.astro"
+import { DICT, localePath, stripLocale, type Lang } from "@i18n"
+
+type Props = { lang: Lang }
+const { lang } = Astro.props
+const t = DICT[lang]
+const { path } = stripLocale(Astro.url.pathname)
+const section = "/" + (path.match(/[^/]+/g)?.[0] ?? "")
+
+const links = [
+  { text: t.nav.home, href: localePath(lang, "/"), match: "/" },
+  { text: t.nav.work, href: localePath(lang, "/work/"), match: "/work" },
+  { text: t.nav.projects, href: "/projects", match: "/projects" },
+  { text: t.nav.notes, href: "/blog", match: "/blog" },
+]
+const isActive = (match: string) => (match === "/" ? path === "/" : section === match)
 ---
 
 <div id="drawer" class="fixed inset-0 h-0 z-40 overflow-hidden flex flex-col items-center justify-center md:hidden bg-[rgb(var(--bg))] transition-[height] duration-300 ease-in-out">
   <nav class="flex flex-col items-center space-y-2">
     {
-      LINKS.map((LINK) => (
-        <a href={LINK.HREF} class={cn("flex items-center justify-center px-3 py-1 rounded-full", "text-current hover:text-black dark:hover:text-white", "hover:bg-black/5 dark:hover:bg-white/20", "transition-colors duration-300 ease-in-out", pathname === LINK.HREF || "/" + subpath?.[0] === LINK.HREF ? "pointer-events-none bg-accent text-black" : "")}>
-          {LINK.TEXT}
+      links.map((link) => (
+        <a href={link.href} class={cn("flex items-center justify-center px-3 py-1 rounded-full", "text-current hover:text-black dark:hover:text-white", "hover:bg-black/5 dark:hover:bg-white/20", "transition-colors duration-300 ease-in-out", isActive(link.match) ? "pointer-events-none bg-accent text-black" : "")}>
+          {link.text}
         </a>
       ))
     }
   </nav>
 
-  <div class="flex gap-1 mt-5">
-    <a href="/search" aria-label={`Search blog posts and projects on ${SITE.TITLE}`} class={cn("size-9 rounded-full p-2 items-center justify-center bg-transparent hover:bg-black/5 dark:hover:bg-white/20 stroke-current hover:stroke-black hover:dark:stroke-white border border-black/10 dark:border-white/25 transition-colors duration-300 ease-in-out", pathname === "/search" || "/" + subpath?.[0] === "search" ? "pointer-events-none bg-accent text-black" : "")}>
-      <svg class="size-full">
-        <use href="/ui.svg#search"></use>
-      </svg>
-    </a>
-
-    <a href="/rss.xml" target="_blank" aria-label={`Rss feed for ${SITE.TITLE}`} class="size-9 rounded-full p-2 items-center justify-center bg-transparent hover:bg-black/5 dark:hover:bg-white/20 stroke-current hover:stroke-black hover:dark:stroke-white border border-black/10 dark:border-white/25 transition-colors duration-300 ease-in-out">
-      <svg class="size-full">
-        <use href="/ui.svg#rss"></use>
-      </svg>
-    </a>
+  <div class="flex items-center gap-2 mt-5">
+    <LangSwitch lang={lang} />
 
     <button id="drawer-theme-button" aria-label={`Toggle light and dark theme`} class="size-9 rounded-full p-2 items-center justify-center bg-transparent hover:bg-black/5 dark:hover:bg-white/20 stroke-current hover:stroke-black hover:dark:stroke-white border border-black/10 dark:border-white/25 transition-colors duration-300 ease-in-out">
       <svg class="block dark:hidden size-full">

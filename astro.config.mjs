@@ -8,5 +8,10 @@ import icon from "astro-icon"
 // https://astro.build/config
 export default defineConfig({
   site: "https://hekim.tech",
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en", "de", "tr"],
+    routing: { prefixDefaultLocale: false },
+  },
   integrations: [mdx(), sitemap(), solidJs(), tailwind({ applyBaseStyles: false }), icon()],
 })

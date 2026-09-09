@@ -1,0 +1,30 @@
+---
+/**
+ * LangSwitch.astro
+ * EN / DE / TR segmented control. Home and experience exist in every language;
+ * from any other page the switch leads to that language's home.
+ */
+import { LOCALES, LANG_LABEL, localePath, stripLocale, TRANSLATED_PATHS, type Lang } from "@i18n"
+import { cn } from "@lib/utils"
+
+type Props = { lang: Lang; class?: string }
+const { lang, class: className } = Astro.props
+const { path } = stripLocale(Astro.url.pathname)
+const base = TRANSLATED_PATHS.includes(path) ? (path.startsWith("/work") ? "/work/" : "/") : "/"
+---
+
+<div class={cn("flex items-center rounded-full border border-black/10 dark:border-white/25 p-0.5 font-mono text-[11px] tracking-wider", className)} role="group" aria-label="Language">
+  {LOCALES.map((l) => (
+    <a
+      href={localePath(l, base)}
+      hreflang={l}
+      aria-current={l === lang ? "true" : undefined}
+      class={cn(
+        "h-7 px-2 rounded-full flex items-center justify-center transition-colors duration-300 ease-in-out",
+        l === lang ? "bg-accent text-black" : "text-current hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/20",
+      )}
+    >
+      {LANG_LABEL[l]}
+    </a>
+  ))}
+</div>

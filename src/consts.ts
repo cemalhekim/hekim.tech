@@ -9,7 +9,7 @@ export const SITE: Site = {
 
 // Work Page
 export const WORK: Page = {
-  TITLE: "Experience and Education",
+  TITLE: "Work and Education History",
   DESCRIPTION: "Where I have worked and studied, newest first.",
 }
 

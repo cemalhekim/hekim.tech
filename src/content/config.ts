@@ -7,6 +7,8 @@ const work = defineCollection({
     role: z.string(),
     dateStart: z.coerce.date(),
     dateEnd: z.union([z.coerce.date(), z.string()]),
+    de: z.string().optional(),
+    tr: z.string().optional(),
   }),
 })
 
@@ -14,10 +16,18 @@ const education = defineCollection({
   type: "content",
   schema: z.object({
     school: z.string(),
-    degree: z.string(),
     dateStart: z.coerce.date(),
     dateEnd: z.union([z.coerce.date(), z.string()]),
-    muted: z.boolean().optional(),
+    degrees: z.array(
+      z.object({
+        title: z.string(),
+        dateStart: z.coerce.date().optional(),
+        dateEnd: z.union([z.coerce.date(), z.string()]).optional(),
+        muted: z.boolean().optional(),
+      }),
+    ),
+    de: z.string().optional(),
+    tr: z.string().optional(),
   }),
 })
 

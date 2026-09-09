@@ -1,0 +1,11 @@
+---
+import WorkPage from "@components/WorkPage.astro"
+import type { Lang } from "@i18n"
+
+export function getStaticPaths() {
+  return [{ params: { lang: "de" } }, { params: { lang: "tr" } }]
+}
+const lang = Astro.params.lang as Lang
+---
+
+<WorkPage lang={lang} />
