@@ -8,6 +8,11 @@ import icon from "astro-icon"
 // https://astro.build/config
 export default defineConfig({
   site: "https://hekim.tech",
+  redirects: {
+    "/work": "/history",
+    "/de/work": "/de/history",
+    "/tr/work": "/tr/history",
+  },
   i18n: {
     defaultLocale: "en",
     locales: ["en", "de", "tr"],

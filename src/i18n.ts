@@ -16,10 +16,10 @@ export function stripLocale(pathname: string): { lang: Lang; path: string } {
 }
 
 // Pages that exist in every language; everything else links back to the English page
-export const TRANSLATED_PATHS = ["/", "/work", "/work/"]
+export const TRANSLATED_PATHS = ["/", "/history", "/history/"]
 
 const en = {
-  nav: { home: "Home", work: "Experience", projects: "Projects", notes: "Notes" },
+  nav: { home: "Home", work: "History", projects: "Projects" },
   now: "Now",
   footer: { tagline: "Static site, self-hosted, no trackers.", status: "All systems nominal", top: "Back to top", terms: "Terms", privacy: "Privacy" },
   home: {
@@ -27,7 +27,7 @@ const en = {
     eyebrow: "Robotics // AI automation // Agents",
     h1: "I build robots and the AI that runs them.",
     lead: "Cemal Hekim. Robotics engineer in Berlin and Düsseldorf: humanoids, lab automation cells and LLM agents that drive real hardware.",
-    ctaProjects: "Projects", ctaWork: "Experience", ctaContact: "Contact",
+    ctaProjects: "Projects", ctaWork: "History", ctaContact: "Contact",
     aboutLabel: "About",
     about: [
       "I build <b>robots</b> and the <b>software around them</b>: humanoid telemetry and teleoperation, service-robot retrofits, lab automation cells, and LLM agents that drive all of it.",
@@ -59,7 +59,7 @@ const en = {
 export type Dict = typeof en
 
 const de: Dict = {
-  nav: { home: "Start", work: "Erfahrung", projects: "Projekte", notes: "Notizen" },
+  nav: { home: "Start", work: "Werdegang", projects: "Projekte" },
   now: "Heute",
   footer: { tagline: "Statische Seite, selbst gehostet, keine Tracker.", status: "Alle Systeme normal", top: "Nach oben", terms: "Nutzungsbedingungen", privacy: "Datenschutz" },
   home: {
@@ -67,7 +67,7 @@ const de: Dict = {
     eyebrow: "Robotik // KI-Automatisierung // Agenten",
     h1: "Ich baue Roboter und die KI, die sie steuert.",
     lead: "Cemal Hekim. Robotik-Ingenieur in Berlin und Düsseldorf: Humanoide, Laborautomatisierung und LLM-Agenten, die echte Hardware bewegen.",
-    ctaProjects: "Projekte", ctaWork: "Erfahrung", ctaContact: "Kontakt",
+    ctaProjects: "Projekte", ctaWork: "Werdegang", ctaContact: "Kontakt",
     aboutLabel: "Über mich",
     about: [
       "Ich baue <b>Roboter</b> und die <b>Software drumherum</b>: Telemetrie und Teleoperation für Humanoide, Retrofits von Servicerobotern, Automatisierungszellen im Labor und LLM-Agenten, die all das steuern.",
@@ -97,7 +97,7 @@ const de: Dict = {
 }
 
 const tr: Dict = {
-  nav: { home: "Ana sayfa", work: "Deneyim", projects: "Projeler", notes: "Notlar" },
+  nav: { home: "Ana sayfa", work: "Geçmiş", projects: "Projeler" },
   now: "Şimdi",
   footer: { tagline: "Statik site, kendi sunucumda, izleyici yok.", status: "Tüm sistemler normal", top: "Yukarı", terms: "Koşullar", privacy: "Gizlilik" },
   home: {
@@ -105,7 +105,7 @@ const tr: Dict = {
     eyebrow: "Robotik // Yapay zekâ otomasyonu // Ajanlar",
     h1: "Robotlar ve onları çalıştıran yapay zekâyı yapıyorum.",
     lead: "Cemal Hekim. Berlin ve Düsseldorf'ta robotik mühendisi: insansı robotlar, laboratuvar otomasyon hücreleri ve gerçek donanımı süren LLM ajanları.",
-    ctaProjects: "Projeler", ctaWork: "Deneyim", ctaContact: "İletişim",
+    ctaProjects: "Projeler", ctaWork: "Geçmiş", ctaContact: "İletişim",
     aboutLabel: "Hakkımda",
     about: [
       "<b>Robotlar</b> ve <b>etrafındaki yazılımı</b> yapıyorum: insansı robotlar için telemetri ve uzaktan kumanda, servis robotu dönüşümleri, laboratuvar otomasyon hücreleri ve hepsini süren LLM ajanları.",

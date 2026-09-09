@@ -11,9 +11,8 @@ const section = "/" + (path.match(/[^/]+/g)?.[0] ?? "")
 
 const links = [
   { text: t.nav.home, href: localePath(lang, "/"), match: "/" },
-  { text: t.nav.work, href: localePath(lang, "/work/"), match: "/work" },
+  { text: t.nav.work, href: localePath(lang, "/history/"), match: "/history" },
   { text: t.nav.projects, href: "/projects", match: "/projects" },
-  { text: t.nav.notes, href: "/blog", match: "/blog" },
 ]
 const isActive = (match: string) => (match === "/" ? path === "/" : section === match)
 ---
