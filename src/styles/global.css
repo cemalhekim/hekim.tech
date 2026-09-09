@@ -187,6 +187,18 @@ article code::after {
   @apply absolute inset-0 rounded-full bg-accent animate-ping;
 }
 
+/* Closing line under the world map, revealed by the map script */
+.outro {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 600ms ease, transform 600ms ease;
+}
+
+.outro.is-on {
+  opacity: 1;
+  transform: none;
+}
+
 /* Corner brackets for HUD framing */
 .bracket {
   @apply pointer-events-none absolute size-5 border-accent/60;

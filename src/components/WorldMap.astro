@@ -1,16 +1,19 @@
 ---
 /**
  * WorldMap.astro
- * Build-time SVG map of the places I have worked. Land outlines come from
- * world-atlas (Natural Earth, public domain) and are projected with d3-geo at
- * build time, so the browser receives static SVG plus one small scroll script.
- * Each city gets a solid disc with a true 30 km radius at the map's scale and
- * a wider radial-gradient halo so the disc stays visible at continental zoom.
- * A flight route through the cities is drawn as the visitor scrolls through the
- * section; the parent marks the scroll range with `data-route-track`.
+ * Build-time SVG world map. Land outlines come from world-atlas (Natural Earth,
+ * public domain) projected with d3-geo at build time: a 110m layer for the whole
+ * world plus a 50m layer clipped to the Europe–Gulf region for crisp coastlines
+ * while zoomed in. The SVG starts zoomed on that region; as the visitor scrolls,
+ * a flight route is drawn between the cities I have worked in, then the viewBox
+ * zooms out to the world and the places of remote colleagues and projects pop
+ * up as orange dots. The parent marks the scroll range with `data-route-track`
+ * and the closing caption with `data-outro`. Set `data-progress` on the figure
+ * to freeze a given progress (0..1), useful for screenshots.
  */
 import { geoMercator, geoPath } from "d3-geo"
 import { feature } from "topojson-client"
+import land110 from "world-atlas/land-110m.json"
 import land50 from "world-atlas/land-50m.json"
 import type { Topology, GeometryCollection } from "topojson-specification"
 
@@ -30,28 +33,54 @@ const cities: City[] = [
 // Flight route, in travel order
 const routeOrder = ["Istanbul", "Dubai / Abu Dhabi", "Abu Dhabi", "Izmir", "Kocaeli", "Berlin", "Milan", "Düsseldorf"]
 
-const width = 960
-const height = 520
-const pad = 8
+// Colleagues and projects around the world, shown once the map zooms out
+const world = [
+  { name: "Barcelona", lon: 2.1734, lat: 41.3851 },
+  { name: "Munich", lon: 11.582, lat: 48.1351 },
+  { name: "Mannheim", lon: 8.466, lat: 49.4875 },
+  { name: "Warsaw", lon: 21.0122, lat: 52.2297 },
+  { name: "India", lon: 77.5946, lat: 12.9716 },
+  { name: "China", lon: 114.0579, lat: 22.5431 },
+  { name: "Taiwan", lon: 121.5654, lat: 25.033 },
+  { name: "California", lon: -122.4194, lat: 37.7749 },
+  { name: "Texas", lon: -97.7431, lat: 30.2672 },
+  { name: "New York", lon: -74.006, lat: 40.7128 },
+  { name: "Cape Town", lon: 18.4241, lat: -33.9249 },
+]
 
-// Region of interest: Western Europe to the Gulf. d3-geo needs clockwise winding,
-// otherwise the polygon means "the whole sphere except this rectangle".
-const bbox = {
-  type: "Polygon" as const,
-  coordinates: [[[-11, 19], [-11, 59], [61, 59], [61, 19], [-11, 19]]],
-}
+// World canvas in SVG user units; the rendered element is about 1000 px wide
+const W = 4800
+const H = 2600
 
-const projection = geoMercator().fitExtent([[pad, pad], [width - pad, height - pad]], bbox)
-projection.clipExtent([[0, 0], [width, height]])
+// Full 360° of longitude across W; the top edge sits at 74° N so Antarctica falls off the bottom.
+// (fitExtent cannot be used here: a polygon wider than a hemisphere is read as its complement.)
+const mercScale = W / (2 * Math.PI)
+const yAtTop = mercScale * Math.log(Math.tan(Math.PI / 4 + (74 * Math.PI) / 360))
+const projection = geoMercator().scale(mercScale).translate([W / 2, yAtTop])
+projection.clipExtent([[0, 0], [W, H]])
 const path = geoPath(projection)
 
-const topo = land50 as unknown as Topology<{ land: GeometryCollection }>
-const land = feature(topo, topo.objects.land)
-const landPath = path(land) ?? ""
+const t110 = land110 as unknown as Topology<{ land: GeometryCollection }>
+const worldPath = path(feature(t110, t110.objects.land)) ?? ""
 
-// Pixel radius of 30 km at each city's latitude
+// Region of interest, Western Europe to the Gulf, as a viewBox with the world's aspect ratio
+const rTL = projection([-11, 59]) ?? [0, 0]
+const rBR = projection([61, 19]) ?? [W, H]
+const regionH = (rBR[1] - rTL[1]) * 1.04
+const regionW = regionH * (W / H)
+const regionCX = (rTL[0] + rBR[0]) / 2
+const regionCY = (rTL[1] + rBR[1]) / 2
+const region = [regionCX - regionW / 2, regionCY - regionH / 2, regionW, regionH].map((v) => Math.round(v))
+
+// 50m coastline only inside the region (plus margin) to keep the HTML small
+const fineProjection = geoMercator().scale(mercScale).translate([W / 2, yAtTop])
+fineProjection.clipExtent([[region[0] - 80, region[1] - 80], [region[0] + region[2] + 80, region[1] + region[3] + 80]])
+const t50 = land50 as unknown as Topology<{ land: GeometryCollection }>
+const finePath = geoPath(fineProjection)(feature(t50, t50.objects.land)) ?? ""
+
+// Radius of 30 km at each city's latitude, in user units
 const EARTH_R_KM = 6371
-function radiusPx(lon: number, lat: number, km: number): number {
+function radiusUnits(lon: number, lat: number, km: number): number {
   const dLat = (km / EARTH_R_KM) * (180 / Math.PI)
   const a = projection([lon, lat])
   const b = projection([lon, lat + dLat])
@@ -61,7 +90,11 @@ function radiusPx(lon: number, lat: number, km: number): number {
 
 const marks = cities.map((c) => {
   const p = projection([c.lon, c.lat]) ?? [0, 0]
-  return { ...c, x: p[0], y: p[1], r30: radiusPx(c.lon, c.lat, 30) }
+  return { ...c, x: p[0], y: p[1], r30: radiusUnits(c.lon, c.lat, 30) }
+})
+const dots = world.map((c) => {
+  const p = projection([c.lon, c.lat]) ?? [0, 0]
+  return { ...c, x: p[0], y: p[1] }
 })
 
 // Route as quadratic arcs bulging to the left of the travel direction
@@ -71,50 +104,67 @@ let routeD = `M ${stops[0].x.toFixed(1)} ${stops[0].y.toFixed(1)}`
 for (let i = 1; i < stops.length; i++) {
   const a = stops[i - 1]
   const b = stops[i]
-  const mx = (a.x + b.x) / 2
-  const my = (a.y + b.y) / 2
   const dx = b.x - a.x
   const dy = b.y - a.y
   const len = Math.hypot(dx, dy) || 1
-  const bulge = Math.min(0.22 * len, 60)
-  const cx = mx - (dy / len) * bulge
-  const cy = my + (dx / len) * bulge
+  const bulge = Math.min(0.22 * len, 34)
+  const cx = (a.x + b.x) / 2 - (dy / len) * bulge
+  const cy = (a.y + b.y) / 2 + (dx / len) * bulge
   routeD += ` Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`
 }
 ---
 
-<figure class="card overflow-hidden" data-worldmap data-route-order={routeOrder.join("|")}>
-  <svg viewBox={`0 0 ${width} ${height}`} class="block w-full h-auto" role="img" aria-label="Map from Western Europe to the Gulf with markers on the cities I have worked in and a flight route between them">
+<figure class="card overflow-hidden" data-worldmap data-route-order={routeOrder.join("|")} data-region={region.join(" ")} data-world={`0 0 ${W} ${H}`}>
+  <svg viewBox={region.join(" ")} class="block w-full h-auto" role="img" aria-label="World map with the cities I have worked in, a flight route between them, and the places of colleagues and projects around the world">
     <defs>
       <radialGradient id="halo">
         <stop offset="0%" stop-color="rgb(var(--accent))" stop-opacity="0.85" />
         <stop offset="35%" stop-color="rgb(var(--accent))" stop-opacity="0.35" />
         <stop offset="100%" stop-color="rgb(var(--accent))" stop-opacity="0" />
       </radialGradient>
-      <pattern id="mapgrid" width="40" height="40" patternUnits="userSpaceOnUse">
-        <path d="M 40 0 L 0 0 0 40" fill="none" class="stroke-black/10 dark:stroke-white/10" stroke-width="0.5" />
+      <radialGradient id="halo-warm">
+        <stop offset="0%" stop-color="rgb(var(--warn))" stop-opacity="0.9" />
+        <stop offset="40%" stop-color="rgb(var(--warn))" stop-opacity="0.3" />
+        <stop offset="100%" stop-color="rgb(var(--warn))" stop-opacity="0" />
+      </radialGradient>
+      <pattern id="mapgrid" width="200" height="200" patternUnits="userSpaceOnUse">
+        <path d="M 200 0 L 0 0 0 200" fill="none" class="stroke-black/10 dark:stroke-white/10" stroke-width="2" vector-effect="non-scaling-stroke" />
       </pattern>
     </defs>
 
-    <rect width={width} height={height} fill="url(#mapgrid)" />
-    <path d={landPath} class="fill-black/[0.07] dark:fill-white/[0.08] stroke-black/30 dark:stroke-white/25" stroke-width="0.6" vector-effect="non-scaling-stroke" />
+    <rect width={W} height={H} fill="url(#mapgrid)" />
+    <path d={worldPath} class="fill-black/[0.07] dark:fill-white/[0.08] stroke-black/25 dark:stroke-white/20" stroke-width="0.6" vector-effect="non-scaling-stroke" />
+    <path d={finePath} class="fine fill-black/[0.07] dark:fill-white/[0.08] stroke-black/30 dark:stroke-white/25" stroke-width="0.6" vector-effect="non-scaling-stroke" />
 
     <!-- Flight route: faint full path underneath, drawn part on top -->
-    <path d={routeD} fill="none" class="stroke-accent/20" stroke-width="1" stroke-dasharray="3 5" />
-    <path d={routeD} fill="none" class="stroke-accent route" stroke-width="1.6" stroke-linecap="round" />
+    <path d={routeD} fill="none" class="stroke-accent/20" stroke-width="1" stroke-dasharray="3 5" vector-effect="non-scaling-stroke" />
+    <path d={routeD} fill="none" class="stroke-accent route" stroke-width="1.6" stroke-linecap="round" vector-effect="non-scaling-stroke" />
 
-    {marks.map((m) => (
-      <g class="city" data-city={m.name}>
-        <circle cx={m.x} cy={m.y} r={m.r30 * 5} fill="url(#halo)" class="halo" />
-        <circle cx={m.x} cy={m.y} r={m.r30} class="fill-accent" />
-        {!m.nolabel && (
-          <text x={m.x + m.dx} y={m.y + m.dy} text-anchor={m.anchor} class="font-mono fill-black dark:fill-white" font-size="13">{m.name}</text>
-        )}
-        {m.note && (
-          <text x={m.x + m.dx} y={m.y + m.dy + 13} text-anchor={m.anchor} class="font-mono fill-black/50 dark:fill-white/50" font-size="10">{m.note}</text>
-        )}
-      </g>
-    ))}
+    <g class="cities">
+      {marks.map((m) => (
+        <g class="city" data-city={m.name}>
+          <circle cx={m.x} cy={m.y} r={m.r30 * 5} fill="url(#halo)" class="halo" />
+          <circle cx={m.x} cy={m.y} r={m.r30} class="fill-accent" />
+          {!m.nolabel && (
+            <text x={m.x + m.dx} y={m.y + m.dy} text-anchor={m.anchor} class="font-mono fill-black dark:fill-white" font-size="15">{m.name}</text>
+          )}
+          {m.note && (
+            <text x={m.x + m.dx} y={m.y + m.dy + 13} text-anchor={m.anchor} class="font-mono fill-black/50 dark:fill-white/50" font-size="10.5">{m.note}</text>
+          )}
+        </g>
+      ))}
+    </g>
+
+    <!-- Colleagues and projects around the world -->
+    <g class="dots">
+      {dots.map((d, i) => (
+        <g class="dot" style={`--i: ${i}`} transform={`translate(${d.x.toFixed(1)} ${d.y.toFixed(1)})`}>
+          <title>{d.name}</title>
+          <circle r="110" fill="url(#halo-warm)" class="burst" />
+          <circle r="16" class="fill-warn core" />
+        </g>
+      ))}
+    </g>
 
     <!-- Plane, moved along the route by the script -->
     <g class="plane" style={`transform: translate(${stops[0].x}px, ${stops[0].y}px)`}>
@@ -137,9 +187,26 @@ for (let i = 1; i < stops.length; i++) {
   }
   .city { transition: opacity 400ms ease; }
   .city.pending { opacity: 0.35; }
+  .cities, .fine { transition: opacity 300ms linear; }
   .plane { transform-box: view-box; will-change: transform; }
+
+  /* Orange dots start invisible and burst in when switched on */
+  .dot .core, .dot .burst { opacity: 0; transform-box: fill-box; transform-origin: center; }
+  .dot.on .core { animation: core-in 500ms cubic-bezier(0.2, 1.4, 0.4, 1) forwards; animation-delay: calc(var(--i) * 90ms); }
+  .dot.on .burst { animation: burst 1100ms ease-out forwards; animation-delay: calc(var(--i) * 90ms); }
+  @keyframes core-in {
+    0% { opacity: 0; transform: scale(0.2); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes burst {
+    0% { opacity: 0; transform: scale(0.3); }
+    30% { opacity: 1; transform: scale(1.4); }
+    100% { opacity: 0.55; transform: scale(1); }
+  }
   @media (prefers-reduced-motion: reduce) {
     .halo { animation: none; }
+    .dot.on .core, .dot.on .burst { animation: none; opacity: 1; }
+    .dot.on .burst { opacity: 0.55; }
   }
 </style>
 
@@ -148,14 +215,21 @@ for (let i = 1; i < stops.length; i++) {
     const fig = document.querySelector<HTMLElement>("[data-worldmap]")
     if (!fig || fig.dataset.ready === "1") return
     fig.dataset.ready = "1"
+    const svg = fig.querySelector("svg")
     const route = fig.querySelector<SVGPathElement>("path.route")
     const plane = fig.querySelector<SVGGElement>("g.plane")
+    const citiesG = fig.querySelector<SVGGElement>("g.cities")
+    const fine = fig.querySelector<SVGPathElement>("path.fine")
     const track = fig.closest<HTMLElement>("[data-route-track]")
-    if (!route || !plane) return
+    const outro = track?.querySelector<HTMLElement>("[data-outro]") ?? null
+    if (!svg || !route || !plane || !citiesG || !fine) return
 
+    const region = (fig.dataset.region ?? "").split(" ").map(Number)
+    const worldBox = (fig.dataset.world ?? "").split(" ").map(Number)
     const total = route.getTotalLength()
     route.style.strokeDasharray = `${total}`
     const cities = Array.from(fig.querySelectorAll<SVGGElement>("g.city"))
+    const dots = Array.from(fig.querySelectorAll<SVGGElement>("g.dot"))
     const order = (fig.dataset.routeOrder ?? "").split("|")
 
     // Distance along the path at which each city is reached, for lighting labels up
@@ -182,24 +256,51 @@ for (let i = 1; i < stops.length; i++) {
       cityAt.set(name, best)
     }
 
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const clamp = (v: number) => Math.min(1, Math.max(0, v))
+    const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
+    const ROUTE_END = 0.6 // share of the scroll spent drawing the route
+    const ZOOM_START = 0.66
 
     function render(p: number) {
-      if (!route || !plane) return
-      const len = total * p
+      if (!svg || !route || !plane || !citiesG || !fine) return
+      // Phase 1: route
+      const p1 = clamp(p / ROUTE_END)
+      const len = total * p1
       route.style.strokeDashoffset = `${total - len}`
       const pt = route.getPointAtLength(len)
       const ahead = route.getPointAtLength(Math.min(total, len + 2))
       const ang = (Math.atan2(ahead.y - pt.y, ahead.x - pt.x) * 180) / Math.PI
       plane.style.transform = `translate(${pt.x}px, ${pt.y}px) rotate(${ang}deg)`
-      plane.style.opacity = p > 0.995 ? "0" : "1"
+      plane.style.opacity = p1 > 0.995 ? "0" : "1"
       for (const g of cities) {
         const at = cityAt.get(g.dataset.city ?? "")
         if (at === undefined) continue
         g.classList.toggle("pending", len < at - 1)
       }
+
+      // Phase 2: zoom out to the world
+      const q = easeInOut(clamp((p - ZOOM_START) / (1 - ZOOM_START)))
+      // Interpolate the viewBox width geometrically so the zoom feels linear
+      const w = region[2] * Math.pow(worldBox[2] / region[2], q)
+      const h = region[3] * Math.pow(worldBox[3] / region[3], q)
+      const cx = region[0] + region[2] / 2 + (worldBox[2] / 2 - (region[0] + region[2] / 2)) * q
+      const cy = region[1] + region[3] / 2 + (worldBox[3] / 2 - (region[1] + region[3] / 2)) * q
+      svg.setAttribute("viewBox", `${(cx - w / 2).toFixed(1)} ${(cy - h / 2).toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`)
+      citiesG.style.opacity = `${1 - clamp(q * 1.6)}`
+      fine.style.opacity = `${1 - clamp(q * 2)}`
+
+      // Phase 3: colleagues and projects pop in once the world is in view
+      const on = q > 0.85
+      for (const d of dots) d.classList.toggle("on", on)
+      outro?.classList.toggle("is-on", q > 0.9)
     }
 
+    const forced = fig.dataset.progress
+    if (forced !== undefined) {
+      render(+forced)
+      return
+    }
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     if (reduce || !track) {
       render(1)
       return
@@ -212,7 +313,7 @@ for (let i = 1; i < stops.length; i++) {
       raf = requestAnimationFrame(() => {
         const rect = trackEl.getBoundingClientRect()
         const span = rect.height - window.innerHeight
-        const p = span <= 0 ? 1 : Math.min(1, Math.max(0, -rect.top / span))
+        const p = span <= 0 ? 1 : clamp(-rect.top / span)
         render(p)
       })
     }
