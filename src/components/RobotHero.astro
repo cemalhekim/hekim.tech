@@ -1,0 +1,447 @@
+---
+/**
+ * RobotHero.astro
+ * Full-bleed Three.js scene with a procedurally built 6-axis manipulator that
+ * cycles through a pick-and-place motion. Joint angles and the tool position
+ * are streamed into the HUD readouts below. The scene is paused when the hero
+ * is off-screen or the tab is hidden, and rendered once (static pose) when the
+ * visitor prefers reduced motion.
+ */
+---
+
+<div id="robot-hero" class="absolute inset-0 overflow-hidden">
+  <canvas id="robot-canvas" class="block h-full w-full" aria-hidden="true"></canvas>
+
+  <!-- HUD: joint telemetry, desktop only -->
+  <div class="pointer-events-none absolute bottom-6 left-5 hidden md:block font-mono text-[11px] leading-5 text-black/60 dark:text-white/60">
+    <div class="label mb-1">Joint state</div>
+    <div class="grid grid-cols-[auto_1fr] gap-x-3">
+      {[1, 2, 3, 4, 5, 6].map((j) => (
+        <>
+          <span>J{j}</span>
+          <span class="tabular-nums text-right" data-joint={j}>+000.0°</span>
+        </>
+      ))}
+    </div>
+  </div>
+
+  <div class="pointer-events-none absolute bottom-6 right-5 hidden md:block font-mono text-[11px] leading-5 text-right text-black/60 dark:text-white/60">
+    <div class="label mb-1">Tool pose</div>
+    <div class="grid grid-cols-[auto_1fr] gap-x-3">
+      <span>X</span><span class="tabular-nums" data-tcp="x">+0.000 m</span>
+      <span>Y</span><span class="tabular-nums" data-tcp="y">+0.000 m</span>
+      <span>Z</span><span class="tabular-nums" data-tcp="z">+0.000 m</span>
+      <span>Grip</span><span data-tcp="grip">OPEN</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  import * as THREE from "three"
+
+  type JointSet = [number, number, number, number, number, number]
+
+  function init() {
+    const canvasEl = document.getElementById("robot-canvas") as HTMLCanvasElement | null
+    const heroEl = document.getElementById("robot-hero")
+    if (!canvasEl || !heroEl) return
+    const canvas: HTMLCanvasElement = canvasEl
+    const hero: HTMLElement = heroEl
+    if (canvas.dataset.ready === "1") return
+    canvas.dataset.ready = "1"
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const isDark = () => document.documentElement.classList.contains("dark")
+
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
+    renderer.shadowMap.enabled = true
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap
+    renderer.toneMapping = THREE.ACESFilmicToneMapping
+
+    const scene = new THREE.Scene()
+    const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100)
+
+    // Materials, swapped when the theme changes
+    const body = new THREE.MeshStandardMaterial({ color: 0x3a4656, metalness: 0.5, roughness: 0.45 })
+    const bodyLight = new THREE.MeshStandardMaterial({ color: 0xd9dee5, metalness: 0.35, roughness: 0.5 })
+    const joint = new THREE.MeshStandardMaterial({ color: 0x1a2129, metalness: 0.7, roughness: 0.35 })
+    const glow = new THREE.MeshStandardMaterial({ color: 0x22d3ee, emissive: 0x22d3ee, emissiveIntensity: 1.4, roughness: 0.3 })
+    const glowLight = new THREE.MeshStandardMaterial({ color: 0x0891b2, emissive: 0x0891b2, emissiveIntensity: 0.9, roughness: 0.3 })
+
+    const bodyMeshes: THREE.Mesh[] = []
+    const glowMeshes: THREE.Mesh[] = []
+
+    const mesh = (geo: THREE.BufferGeometry, mat: THREE.Material, bucket?: THREE.Mesh[]) => {
+      const m = new THREE.Mesh(geo, mat)
+      m.castShadow = true
+      m.receiveShadow = true
+      bucket?.push(m)
+      return m
+    }
+
+    // Robot: base -> J1 yaw -> J2 pitch -> J3 pitch -> J4 roll -> J5 pitch -> J6 roll -> gripper
+    const robot = new THREE.Group()
+    scene.add(robot)
+
+    const base = mesh(new THREE.CylinderGeometry(0.55, 0.65, 0.18, 48), joint)
+    base.position.y = 0.09
+    robot.add(base)
+    const baseRing = mesh(new THREE.TorusGeometry(0.58, 0.015, 8, 64), glow, glowMeshes)
+    baseRing.rotation.x = Math.PI / 2
+    baseRing.position.y = 0.19
+    robot.add(baseRing)
+
+    const j1 = new THREE.Group()
+    j1.position.y = 0.18
+    robot.add(j1)
+    const turret = mesh(new THREE.CylinderGeometry(0.42, 0.5, 0.42, 40), body, bodyMeshes)
+    turret.position.y = 0.21
+    j1.add(turret)
+
+    const j2 = new THREE.Group()
+    j2.position.set(0, 0.42, 0)
+    j1.add(j2)
+    const shoulder = mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.62, 32), joint)
+    shoulder.rotation.z = Math.PI / 2
+    j2.add(shoulder)
+    const shoulderRing = mesh(new THREE.TorusGeometry(0.3, 0.012, 8, 48), glow, glowMeshes)
+    shoulderRing.rotation.y = Math.PI / 2
+    shoulderRing.position.x = 0.32
+    j2.add(shoulderRing)
+    const L1 = 1.35
+    const link1 = mesh(new THREE.BoxGeometry(0.34, L1, 0.3), body, bodyMeshes)
+    link1.position.y = L1 / 2
+    j2.add(link1)
+
+    const j3 = new THREE.Group()
+    j3.position.set(0, L1, 0)
+    j2.add(j3)
+    const elbow = mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.5, 32), joint)
+    elbow.rotation.z = Math.PI / 2
+    j3.add(elbow)
+    const elbowRing = mesh(new THREE.TorusGeometry(0.24, 0.012, 8, 48), glow, glowMeshes)
+    elbowRing.rotation.y = Math.PI / 2
+    elbowRing.position.x = 0.26
+    j3.add(elbowRing)
+    const L2 = 1.15
+    const link2 = mesh(new THREE.BoxGeometry(0.26, L2, 0.24), body, bodyMeshes)
+    link2.position.y = L2 / 2
+    j3.add(link2)
+
+    const j4 = new THREE.Group()
+    j4.position.set(0, L2, 0)
+    j3.add(j4)
+    const forearm = mesh(new THREE.CylinderGeometry(0.15, 0.17, 0.5, 32), body, bodyMeshes)
+    forearm.position.y = 0.25
+    j4.add(forearm)
+
+    const j5 = new THREE.Group()
+    j5.position.set(0, 0.5, 0)
+    j4.add(j5)
+    const wrist = mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.32, 32), joint)
+    wrist.rotation.z = Math.PI / 2
+    j5.add(wrist)
+    const wristRing = mesh(new THREE.TorusGeometry(0.16, 0.01, 8, 40), glow, glowMeshes)
+    wristRing.rotation.y = Math.PI / 2
+    wristRing.position.x = 0.17
+    j5.add(wristRing)
+
+    const j6 = new THREE.Group()
+    j6.position.set(0, 0.16, 0)
+    j5.add(j6)
+    const flange = mesh(new THREE.CylinderGeometry(0.13, 0.11, 0.14, 32), body, bodyMeshes)
+    flange.position.y = 0.07
+    j6.add(flange)
+
+    // Gripper
+    const gripper = new THREE.Group()
+    gripper.position.y = 0.14
+    j6.add(gripper)
+    const palm = mesh(new THREE.BoxGeometry(0.34, 0.1, 0.16), joint)
+    palm.position.y = 0.05
+    gripper.add(palm)
+    const fingerL = mesh(new THREE.BoxGeometry(0.05, 0.28, 0.12), body, bodyMeshes)
+    const fingerR = fingerL.clone()
+    fingerL.position.set(-0.12, 0.24, 0)
+    fingerR.position.set(0.12, 0.24, 0)
+    gripper.add(fingerL, fingerR)
+    const tcp = new THREE.Object3D()
+    tcp.position.y = 0.38
+    gripper.add(tcp)
+
+    // Workpiece the arm picks up
+    const part = mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), glow, glowMeshes)
+    part.position.set(1.4, 0.1, 0.9)
+    scene.add(part)
+
+    // Pedestals
+    for (const [x, z] of [[1.4, 0.9], [-1.4, 0.9]]) {
+      const ped = mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.06, 32), joint)
+      ped.position.set(x, 0.03, z)
+      scene.add(ped)
+    }
+
+    // Floor grid and shadow catcher
+    const grid = new THREE.GridHelper(30, 60, 0x22d3ee, 0x22d3ee)
+    const gridMat = grid.material as THREE.LineBasicMaterial
+    gridMat.transparent = true
+    gridMat.opacity = 0.09
+    scene.add(grid)
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.ShadowMaterial({ opacity: 0.35 }))
+    floor.rotation.x = -Math.PI / 2
+    floor.receiveShadow = true
+    scene.add(floor)
+
+    // Lights
+    const hemi = new THREE.HemisphereLight(0xdfe7ef, 0x0b1016, 1.4)
+    scene.add(hemi)
+    const key = new THREE.DirectionalLight(0xffffff, 3.0)
+    key.position.set(4, 7, 4)
+    key.castShadow = true
+    key.shadow.mapSize.set(1024, 1024)
+    key.shadow.camera.left = -5
+    key.shadow.camera.right = 5
+    key.shadow.camera.top = 6
+    key.shadow.camera.bottom = -2
+    key.shadow.bias = -0.0005
+    scene.add(key)
+    const rim = new THREE.PointLight(0x22d3ee, 14, 12, 2)
+    rim.position.set(-3, 2.5, -2)
+    scene.add(rim)
+
+    // Theme handling
+    function applyTheme() {
+      const dark = isDark()
+      const bm = dark ? body : bodyLight
+      const gm = dark ? glow : glowLight
+      for (const m of bodyMeshes) m.material = bm
+      for (const m of glowMeshes) m.material = gm
+      gridMat.opacity = dark ? 0.09 : 0.14
+      gridMat.color.set(dark ? 0x22d3ee : 0x0891b2)
+      rim.intensity = dark ? 14 : 4
+      scene.fog = new THREE.Fog(dark ? 0x070a0f : 0xf6f8fa, 9, 20)
+      renderOnce()
+    }
+    new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] })
+
+    // Motion: waypoints in radians [J1..J6], gripper state, dwell seconds
+    const deg = (d: number) => (d * Math.PI) / 180
+    const home: JointSet = [deg(0), deg(-20), deg(-40), 0, deg(-30), 0]
+    const overPick: JointSet = [deg(33), deg(25), deg(-95), 0, deg(-20), deg(20)]
+    const atPick: JointSet = [deg(33), deg(42), deg(-105), 0, deg(-27), deg(20)]
+    const overPlace: JointSet = [deg(-33), deg(25), deg(-95), 0, deg(-20), deg(-20)]
+    const atPlace: JointSet = [deg(-33), deg(42), deg(-105), 0, deg(-27), deg(-20)]
+    const program: { q: JointSet; grip: boolean; dwell: number; move: number }[] = [
+      { q: home, grip: false, dwell: 0.9, move: 1.8 },
+      { q: overPick, grip: false, dwell: 0.3, move: 1.6 },
+      { q: atPick, grip: false, dwell: 0.35, move: 0.9 },
+      { q: atPick, grip: true, dwell: 0.35, move: 0.3 },
+      { q: overPick, grip: true, dwell: 0.2, move: 0.9 },
+      { q: overPlace, grip: true, dwell: 0.2, move: 2.0 },
+      { q: atPlace, grip: true, dwell: 0.35, move: 0.9 },
+      { q: atPlace, grip: false, dwell: 0.35, move: 0.3 },
+      { q: overPlace, grip: false, dwell: 0.2, move: 0.9 },
+      { q: home, grip: false, dwell: 0.6, move: 1.8 },
+      // Return trip so the loop is seamless
+      { q: overPlace, grip: false, dwell: 0.3, move: 1.6 },
+      { q: atPlace, grip: false, dwell: 0.35, move: 0.9 },
+      { q: atPlace, grip: true, dwell: 0.35, move: 0.3 },
+      { q: overPlace, grip: true, dwell: 0.2, move: 0.9 },
+      { q: overPick, grip: true, dwell: 0.2, move: 2.0 },
+      { q: atPick, grip: true, dwell: 0.35, move: 0.9 },
+      { q: atPick, grip: false, dwell: 0.35, move: 0.3 },
+      { q: overPick, grip: false, dwell: 0.2, move: 0.9 },
+    ]
+
+    const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+    const q: JointSet = [...home] as JointSet
+    let gripOpen = 1 // 1 open, 0 closed
+    let holding = false
+    let step = 0
+    let phase: "move" | "dwell" = "move"
+    let t = 0
+    let prev: JointSet = [...home] as JointSet
+    let prevGrip = 1
+    let elapsed = 0
+
+    function setPose() {
+      j1.rotation.y = q[0]
+      j2.rotation.x = q[1]
+      j3.rotation.x = q[2]
+      j4.rotation.y = q[3]
+      j5.rotation.x = q[4]
+      j6.rotation.y = q[5]
+      const spread = 0.06 + 0.07 * gripOpen
+      fingerL.position.x = -spread
+      fingerR.position.x = spread
+      robot.updateMatrixWorld(true)
+      if (holding) {
+        tcp.getWorldPosition(part.position)
+        part.position.y -= 0.02
+        part.quaternion.setFromRotationMatrix(tcp.matrixWorld)
+      }
+    }
+
+    function advance(dt: number) {
+      elapsed += dt
+      const target = program[step]
+      if (phase === "move") {
+        t += dt / target.move
+        const k = ease(Math.min(t, 1))
+        for (let i = 0; i < 6; i++) q[i] = prev[i] + (target.q[i] - prev[i]) * k
+        gripOpen = prevGrip + ((target.grip ? 0 : 1) - prevGrip) * k
+        if (t >= 1) {
+          phase = "dwell"
+          t = 0
+          if (target.grip && !holding) holding = true
+          if (!target.grip && holding) {
+            holding = false
+            part.position.y = 0.1
+            part.rotation.set(0, 0, 0)
+          }
+        }
+      } else {
+        t += dt
+        if (t >= target.dwell) {
+          prev = [...q] as JointSet
+          prevGrip = gripOpen
+          step = (step + 1) % program.length
+          phase = "move"
+          t = 0
+        }
+      }
+      // Idle breathing so the arm never looks frozen while dwelling
+      j5.rotation.x += Math.sin(elapsed * 1.7) * 0.004
+    }
+
+    // HUD
+    const jointEls = Array.from(hero.querySelectorAll<HTMLElement>("[data-joint]"))
+    const tcpX = hero.querySelector<HTMLElement>('[data-tcp="x"]')
+    const tcpY = hero.querySelector<HTMLElement>('[data-tcp="y"]')
+    const tcpZ = hero.querySelector<HTMLElement>('[data-tcp="z"]')
+    const tcpG = hero.querySelector<HTMLElement>('[data-tcp="grip"]')
+    const fmtDeg = (r: number) => {
+      const d = (r * 180) / Math.PI
+      return (d >= 0 ? "+" : "-") + Math.abs(d).toFixed(1).padStart(5, "0") + "°"
+    }
+    const fmtM = (v: number) => (v >= 0 ? "+" : "-") + Math.abs(v).toFixed(3) + " m"
+    const tcpPos = new THREE.Vector3()
+    let hudTimer = 0
+    function updateHud(dt: number) {
+      hudTimer += dt
+      if (hudTimer < 0.1) return
+      hudTimer = 0
+      for (let i = 0; i < jointEls.length; i++) jointEls[i].textContent = fmtDeg(q[i])
+      tcp.getWorldPosition(tcpPos)
+      // Robot-frame coordinates: X forward, Y left, Z up
+      if (tcpX) tcpX.textContent = fmtM(-tcpPos.z)
+      if (tcpY) tcpY.textContent = fmtM(-tcpPos.x)
+      if (tcpZ) tcpZ.textContent = fmtM(tcpPos.y)
+      if (tcpG) tcpG.textContent = gripOpen < 0.5 ? "CLOSED" : "OPEN"
+    }
+
+    // Camera: arm sits right of centre on wide screens, centred on narrow ones
+    const target = new THREE.Vector3(0.6, 1.3, 0)
+    let camRadius = 9.5
+    let pointerX = 0
+    let pointerY = 0
+    window.addEventListener("pointermove", (e) => {
+      pointerX = (e.clientX / window.innerWidth) * 2 - 1
+      pointerY = (e.clientY / window.innerHeight) * 2 - 1
+    }, { passive: true })
+
+    function layout() {
+      const w = hero.clientWidth
+      const h = hero.clientHeight
+      renderer.setSize(w, h, false)
+      camera.aspect = w / h
+      camera.updateProjectionMatrix()
+      const wide = w >= 768
+      // Wide: arm to the right of the copy. Narrow: centred, smaller and dimmed behind the copy.
+      robot.position.x = wide ? 2.3 : 0
+      target.set(wide ? 0.7 : 0, wide ? 1.3 : 1.1, 0)
+      camRadius = wide ? 9.5 : 12
+      camera.fov = wide ? 32 : 40
+      canvas.style.opacity = wide ? "1" : "0.45"
+      camera.updateProjectionMatrix()
+    }
+    // Pedestal and part follow the robot offset
+    const pedestals = scene.children.filter((c) => c instanceof THREE.Mesh && c.geometry instanceof THREE.CylinderGeometry && c !== base) as THREE.Mesh[]
+    function placeProps() {
+      const ox = robot.position.x
+      pedestals[0]?.position.set(ox + 1.4, 0.03, 0.9)
+      pedestals[1]?.position.set(ox - 1.4, 0.03, 0.9)
+      if (!holding) part.position.set(ox + (step >= 10 ? -1.4 : 1.4), 0.1, 0.9)
+    }
+
+    let camAngle = 0
+    function updateCamera(dt: number) {
+      camAngle += (pointerX * 0.25 - camAngle) * Math.min(1, dt * 3)
+      const r = camRadius
+      const a = 0.62 + camAngle
+      camera.position.set(target.x + Math.sin(a) * r, 3.1 - pointerY * 0.3, Math.cos(a) * r)
+      camera.lookAt(target)
+    }
+
+    function renderOnce() {
+      setPose()
+      updateCamera(1)
+      renderer.render(scene, camera)
+    }
+
+    // Loop control
+    let running = false
+    let last = performance.now()
+    let raf = 0
+    function frame(now: number) {
+      if (!running) return
+      const dt = Math.min(0.05, (now - last) / 1000)
+      last = now
+      advance(dt)
+      setPose()
+      updateCamera(dt)
+      updateHud(dt)
+      renderer.render(scene, camera)
+      raf = requestAnimationFrame(frame)
+    }
+    function start() {
+      if (running || reduceMotion) return
+      running = true
+      last = performance.now()
+      raf = requestAnimationFrame(frame)
+    }
+    function stop() {
+      running = false
+      cancelAnimationFrame(raf)
+    }
+
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) (e.isIntersecting && !document.hidden ? start : stop)()
+    }, { threshold: 0.05 })
+    io.observe(hero)
+    document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()))
+
+    const ro = new ResizeObserver(() => {
+      layout()
+      placeProps()
+      renderOnce()
+    })
+    ro.observe(hero)
+
+    layout()
+    placeProps()
+    // Static pose for reduced motion: mid-reach, gripper closed on the part
+    if (reduceMotion) {
+      for (let i = 0; i < 6; i++) q[i] = overPlace[i]
+      gripOpen = 0
+      holding = true
+    }
+    applyTheme()
+    updateHud(1)
+  }
+
+  init()
+  document.addEventListener("astro:after-swap", init)
+</script>

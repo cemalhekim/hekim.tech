@@ -3,14 +3,14 @@ import type { Site, Page, Links, Socials } from "@types"
 // Global
 export const SITE: Site = {
   TITLE: "Cemal Hekim",
-  DESCRIPTION: "Robotics engineer in Berlin and Düsseldorf: humanoids, lab automation, AI agents and the tools around them.",
+  DESCRIPTION: "Robotics engineer in Berlin and Düsseldorf. Humanoids, lab automation cells and LLM agents that drive real hardware.",
   AUTHOR: "Cemal Hekim",
 }
 
 // Work Page
 export const WORK: Page = {
   TITLE: "Experience",
-  DESCRIPTION: "Where I have worked and studied.",
+  DESCRIPTION: "Robots, labs and companies I have worked with, newest first.",
 }
 
 // Blog Page

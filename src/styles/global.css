@@ -1,9 +1,28 @@
+@import "@fontsource-variable/jetbrains-mono";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   --copy-btn-margin: 10px;
+  /* Light theme: blueprint paper */
+  --bg: 246 248 250;
+  --surface: 255 255 255;
+  --ink: 17 24 39;
+  --accent: 8 145 178;
+  --warn: 217 119 6;
+  --grid: rgba(17, 24, 39, 0.06);
+}
+
+html.dark {
+  /* Dark theme: lab at night */
+  --bg: 7 10 15;
+  --surface: 13 17 23;
+  --ink: 229 231 235;
+  --accent: 34 211 238;
+  --warn: 245 158 11;
+  --grid: rgba(255, 255, 255, 0.045);
 }
 
 @layer base {
@@ -27,20 +46,18 @@
 html {
   overflow-y: scroll;
   color-scheme: light;
-  background-color: white;
+  background-color: rgb(var(--bg));
   font-family: "Atkinson", sans-serif;
-
 }
 
 html.dark {
   color-scheme: dark;
-  background-color: black;
 }
 
 html,
 body {
   @apply h-full w-full antialiased;
-  @apply bg-white dark:bg-black;
+  background-color: rgb(var(--bg));
   @apply text-black/75 dark:text-white/75;
 }
 
@@ -48,8 +65,23 @@ body {
   @apply relative flex flex-col;
 }
 
+/* Engineering grid behind every page, fixed so it never scrolls. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at 50% 0%, black 30%, transparent 85%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 0%, black 30%, transparent 85%);
+}
+
 main {
-  @apply flex flex-col flex-1 bg-white dark:bg-black;
+  @apply flex flex-col flex-1;
 }
 
 header {
@@ -62,13 +94,26 @@ header:not(.scrolled) {
 }
 
 header.scrolled {
-  @apply bg-white/75 dark:bg-black/50;
-  @apply border-black/10 dark:border-white/25;
-  @apply backdrop-blur-sm saturate-200;
+  background-color: rgb(var(--bg) / 0.75);
+  @apply border-black/10 dark:border-white/15;
+  @apply backdrop-blur-sm saturate-150;
 }
 
 article {
   @apply prose dark:prose-invert max-w-full pb-12;
+}
+
+article a {
+  @apply text-accent decoration-accent/40 hover:decoration-accent;
+}
+
+article code:not(pre code) {
+  @apply font-mono text-[0.85em] px-1 py-0.5 rounded bg-black/5 dark:bg-white/10;
+}
+
+article code::before,
+article code::after {
+  content: none;
 }
 
 .page-heading {
@@ -79,16 +124,78 @@ article {
   @apply transition-all duration-300 ease-in-out;
 }
 
-/** Light theme particles on home page */
-@keyframes animateParticle {
-  from {
-    transform: translateY(0px);
-  }
-
-  to {
-    transform: translateY(-2000px);
-  }
+/* Monospace eyebrow label, used above headings and in HUD readouts. */
+.label {
+  @apply font-mono text-[11px] uppercase tracking-[0.18em] text-accent;
 }
+
+/* Card surface with an accent hover, used for project, post and capability cards. */
+.card {
+  @apply relative rounded-lg border border-black/10 dark:border-white/10;
+  background-color: rgb(var(--surface) / 0.7);
+  @apply transition-all duration-300 ease-in-out;
+}
+
+.card:hover {
+  @apply border-accent/60;
+  box-shadow: 0 0 0 1px rgb(var(--accent) / 0.25), 0 12px 40px -20px rgb(var(--accent) / 0.45);
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 10px;
+  height: 10px;
+  border-top: 1px solid rgb(var(--accent) / 0.8);
+  border-left: 1px solid rgb(var(--accent) / 0.8);
+  border-top-left-radius: 0.5rem;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+/* Tag chip */
+.chip {
+  @apply font-mono text-[11px] uppercase tracking-wider py-0.5 px-2 rounded border border-black/10 dark:border-white/15 text-black/70 dark:text-white/70;
+}
+
+/* Primary and secondary buttons */
+.btn {
+  @apply inline-flex items-center gap-2 py-2 px-4 rounded font-mono text-xs md:text-sm uppercase tracking-wider blend;
+}
+
+.btn-primary {
+  @apply bg-accent text-black hover:brightness-110;
+}
+
+.btn-secondary {
+  @apply border border-black/20 dark:border-white/20 text-black dark:text-white hover:border-accent hover:text-accent;
+}
+
+/* Status dot with a soft pulse */
+.status-dot {
+  @apply relative inline-flex size-2 rounded-full bg-accent;
+}
+
+.status-dot::after {
+  content: "";
+  @apply absolute inset-0 rounded-full bg-accent animate-ping;
+}
+
+/* Corner brackets for HUD framing */
+.bracket {
+  @apply pointer-events-none absolute size-5 border-accent/60;
+}
+
+.bracket-tl { @apply top-0 left-0 border-t border-l; }
+.bracket-tr { @apply top-0 right-0 border-t border-r; }
+.bracket-bl { @apply bottom-0 left-0 border-b border-l; }
+.bracket-br { @apply bottom-0 right-0 border-b border-r; }
 
 /** styles for public /animation.js */
 .animate {
@@ -102,60 +209,21 @@ article {
   transform: translateY(0);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate {
+    transform: none;
+    transition: opacity 0.4s ease;
+  }
+  .status-dot::after {
+    animation: none;
+  }
+}
+
 article img {
   padding-top: 20px;
   padding-bottom: 20px;
   display: block;
   margin: 0 auto;
-}
-
-/**
- * TWINKLE STARS
- */
-
-#twinkle-star.template {
-  @apply absolute -left-full;
-  /* hide offscreen */
-}
-
-#twinkle-star.twinkle {
-  @apply animate-twinkle;
-  /* defined in tailwind.config */
-}
-
-
-/**
- * Meteors
- */
-
-#meteors .shower {
-  @apply absolute inset-0 top-0;
-  ;
-  @apply left-1/2 -translate-x-1/2;
-  @apply w-screen aspect-square;
-}
-
-#meteors .meteor {
-  @apply animate-meteor;
-  /* defined in tailwind.config */
-  @apply absolute top-1/2 left-1/2 w-px h-[75vh];
-  @apply bg-gradient-to-b from-white to-transparent;
-}
-
-#meteors .shower.ur {
-  @apply rotate-45;
-}
-
-#meteors .shower.dr {
-  @apply rotate-135;
-}
-
-#meteors .shower.dl {
-  @apply rotate-225;
-}
-
-#meteors .shower.ul {
-  @apply rotate-315;
 }
 
 .copy-cnt {
@@ -172,15 +240,3 @@ article img {
 .copy-svg {
   @apply w-full aspect-square text-white opacity-70 hover:opacity-90;
 }
-
-/* Card transition */
-/* .fade-move-enter-active,
-.fade-move-exit-active {
-  transition: all 300ms ease;
-}
-
-.fade-move-enter-from,
-.fade-move-exit-to {
-  opacity: 0;
-  transform: translateY(10px);
-} */

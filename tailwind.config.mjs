@@ -7,7 +7,15 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        "sans": ["Atkinson", ...defaultTheme.fontFamily.sans],
+        sans: ["Atkinson", ...defaultTheme.fontFamily.sans],
+        mono: ["\"JetBrains Mono Variable\"", ...defaultTheme.fontFamily.mono],
+      },
+      colors: {
+        // Theme tokens live in global.css as RGB triplets so opacity modifiers work.
+        accent: "rgb(var(--accent) / <alpha-value>)",
+        warn: "rgb(var(--warn) / <alpha-value>)",
+        surface: "rgb(var(--surface) / <alpha-value>)",
+        ink: "rgb(var(--ink) / <alpha-value>)",
       },
       typography: {
         DEFAULT: {
@@ -16,43 +24,18 @@ export default {
           },
         },
       },
-      rotate: {
-        "45": "45deg",
-        "135": "135deg",
-        "225": "225deg",
-        "315": "315deg",
-      },
       animation: {
-        twinkle: "twinkle 2s ease-in-out forwards",
-        meteor: "meteor 3s ease-in-out forwards",
+        pulse2: "pulse2 2.4s ease-in-out infinite",
+        scan: "scan 6s linear infinite",
       },
       keyframes: {
-        twinkle: {
-          "0%": { 
-            opacity: 0, 
-            transform: "rotate(0deg)" 
-          },
-          "50%": { 
-            opacity: 1,
-            transform: "rotate(180deg)" 
-          },
-          "100%": { 
-            opacity: 0, 
-            transform: "rotate(360deg)" 
-          },
+        pulse2: {
+          "0%, 100%": { opacity: 1 },
+          "50%": { opacity: 0.35 },
         },
-        meteor: {
-          "0%": { 
-            opacity: 0, 
-            transform: "translateY(200%)" 
-          },
-          "50%": { 
-            opacity: 1  
-          },
-          "100%": { 
-            opacity: 0, 
-            transform: "translateY(0)" 
-          },
+        scan: {
+          "0%": { transform: "translateY(-100%)" },
+          "100%": { transform: "translateY(100vh)" },
         },
       },
     },
