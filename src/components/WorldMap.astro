@@ -12,17 +12,17 @@ import { feature } from "topojson-client"
 import land50 from "world-atlas/land-50m.json"
 import type { Topology, GeometryCollection } from "topojson-specification"
 
-type City = { name: string; lon: number; lat: number; note: string; dx: number; dy: number; anchor: "start" | "end" | "middle" }
+type City = { name: string; lon: number; lat: number; note: string; dx: number; dy: number; anchor: "start" | "end" | "middle"; nolabel?: boolean }
 
 const cities: City[] = [
   { name: "Düsseldorf", lon: 6.7735, lat: 51.2277, note: "Vodafone GmbH", dx: -10, dy: -8, anchor: "end" },
   { name: "Berlin", lon: 13.405, lat: 52.52, note: "TU Berlin, BAM", dx: 10, dy: -8, anchor: "start" },
   { name: "Milan", lon: 9.19, lat: 45.4642, note: "Politecnico di Milano", dx: -10, dy: 14, anchor: "end" },
-  { name: "Istanbul", lon: 28.9784, lat: 41.0082, note: "Mercedes-Benz Türk, Siemens, Türk-Alman Üniversitesi", dx: -10, dy: -8, anchor: "end" },
+  { name: "Istanbul", lon: 28.9784, lat: 41.0082, note: "Mercedes-Benz", dx: -10, dy: -8, anchor: "end" },
   { name: "Kocaeli", lon: 29.9408, lat: 40.7654, note: "Koç Automotive", dx: 10, dy: 4, anchor: "start" },
-  { name: "Izmir", lon: 27.1428, lat: 38.4237, note: "", dx: -10, dy: 14, anchor: "end" },
-  { name: "Dubai", lon: 55.2708, lat: 25.2048, note: "Vareint Engineering Services", dx: 10, dy: -6, anchor: "start" },
-  { name: "Abu Dhabi", lon: 54.3773, lat: 24.4539, note: "", dx: -10, dy: 14, anchor: "end" },
+  { name: "Izmir", lon: 27.1428, lat: 38.4237, note: "Vareint GmbH", dx: -10, dy: 14, anchor: "end" },
+  { name: "Dubai / Abu Dhabi", lon: 55.2708, lat: 25.2048, note: "Vareint GmbH", dx: 10, dy: -6, anchor: "start" },
+  { name: "Abu Dhabi", lon: 54.3773, lat: 24.4539, note: "", dx: 0, dy: 0, anchor: "end", nolabel: true },
 ]
 
 const width = 960
@@ -81,7 +81,9 @@ const marks = cities.map((c) => {
       <g class="city">
         <circle cx={m.x} cy={m.y} r={m.r30 * 5} fill="url(#halo)" class="halo" />
         <circle cx={m.x} cy={m.y} r={m.r30} class="fill-accent" />
-        <text x={m.x + m.dx} y={m.y + m.dy} text-anchor={m.anchor} class="font-mono fill-black dark:fill-white" font-size="13">{m.name}</text>
+        {!m.nolabel && (
+          <text x={m.x + m.dx} y={m.y + m.dy} text-anchor={m.anchor} class="font-mono fill-black dark:fill-white" font-size="13">{m.name}</text>
+        )}
         {m.note && (
           <text x={m.x + m.dx} y={m.y + m.dy + 13} text-anchor={m.anchor} class="font-mono fill-black/50 dark:fill-white/50" font-size="10">{m.note}</text>
         )}
