@@ -68,18 +68,13 @@ const stack: { name: string; icon?: string }[] = [
   { name: "Claude & local LLMs", icon: "simple-icons:claude" },
 ]
 
-// Robots I have worked with, largest first
+// Robots I have worked with, by class
 const robots = [
-  { name: "ABB IRB 6700", type: "industrial arm, recycling cell" },
-  { name: "KUKA", type: "industrial arm, control certification" },
-  { name: "Unitree H1-2", type: "humanoid, telemetry & XR teleoperation" },
-  { name: "ABB spot-welding robots", type: "industrial arm, welding line" },
-  { name: "Universal Robots UR10e", type: "cobot, recycling automation" },
-  { name: "Universal Robots UR5e", type: "cobot, monitor-holder demo" },
-  { name: "Franka Emika Panda", type: "cobot, control-stack retrofit" },
-  { name: "SoftBank Pepper", type: "service robot, LLM voice assistant" },
-  { name: "UFactory xArm", type: "desktop arm, autonomous sample handling" },
-  { name: "Wall-crawling robot", type: "own build, lidar motion planning" },
+  { group: "Industrial arms", items: ["ABB IRB 6700", "ABB spot-welding robots", "KUKA"] },
+  { group: "Cobots", items: ["Universal Robots UR10e", "Universal Robots UR5e", "Franka Emika Panda", "UFactory xArm"] },
+  { group: "Humanoids", items: ["Unitree H1-2"] },
+  { group: "Service robots", items: ["SoftBank Pepper"] },
+  { group: "Own builds", items: ["Wall-crawling robot"] },
 ]
 ---
 
@@ -220,15 +215,18 @@ const robots = [
         <div>
           <div class="label">Robots</div>
           <h2 class="mt-2 text-2xl md:text-3xl font-bold text-black dark:text-white">Robots I have worked with</h2>
-          <ol class="mt-6 divide-y divide-black/10 dark:divide-white/10 border-y border-black/10 dark:border-white/10">
-            {robots.map((r, i) => (
-              <li class="flex items-baseline gap-3 py-2">
-                <span class="font-mono text-[11px] text-accent w-6 shrink-0">{String(i + 1).padStart(2, "0")}</span>
-                <span class="font-semibold text-black dark:text-white">{r.name}</span>
-                <span class="ml-auto text-right font-mono text-[11px] text-black/50 dark:text-white/50">{r.type}</span>
-              </li>
+          <dl class="mt-6 divide-y divide-black/10 dark:divide-white/10 border-y border-black/10 dark:border-white/10">
+            {robots.map((r) => (
+              <div class="grid grid-cols-[120px_1fr] gap-3 py-3">
+                <dt class="font-mono text-[11px] uppercase tracking-wider text-accent pt-1">{r.group}</dt>
+                <dd class="flex flex-wrap gap-1.5">
+                  {r.items.map((name) => (
+                    <span class="chip !text-xs !normal-case !tracking-normal py-1 px-3 text-black dark:text-white hover:border-accent hover:text-accent blend">{name}</span>
+                  ))}
+                </dd>
+              </div>
             ))}
-          </ol>
+          </dl>
         </div>
       </section>
 
