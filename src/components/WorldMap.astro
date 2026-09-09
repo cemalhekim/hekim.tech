@@ -45,6 +45,7 @@ const world = [
   { name: "California", lon: -122.4194, lat: 37.7749 },
   { name: "Texas", lon: -97.7431, lat: 30.2672 },
   { name: "New York", lon: -74.006, lat: 40.7128 },
+  { name: "Toronto", lon: -79.3832, lat: 43.6532 },
   { name: "Cape Town", lon: 18.4241, lat: -33.9249 },
 ]
 
@@ -137,14 +138,14 @@ for (let i = 1; i < stops.length; i++) {
     <path d={finePath} class="fine fill-black/[0.07] dark:fill-white/[0.08] stroke-black/30 dark:stroke-white/25" stroke-width="0.6" vector-effect="non-scaling-stroke" />
 
     <!-- Flight route: faint full path underneath, drawn part on top -->
-    <path d={routeD} fill="none" class="stroke-accent/20" stroke-width="1" stroke-dasharray="3 5" vector-effect="non-scaling-stroke" />
-    <path d={routeD} fill="none" class="stroke-accent route" stroke-width="1.6" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+    <path d={routeD} fill="none" class="stroke-accent/20 route-faint" stroke-width="1" stroke-dasharray="3 5" />
+    <path d={routeD} fill="none" class="stroke-accent route" stroke-width="1.6" stroke-linecap="round" />
 
     <g class="cities">
       {marks.map((m) => (
         <g class="city" data-city={m.name}>
-          <circle cx={m.x} cy={m.y} r={m.r30 * 5} fill="url(#halo)" class="halo" />
-          <circle cx={m.x} cy={m.y} r={m.r30} class="fill-accent" />
+          <circle cx={m.x} cy={m.y} r={m.r30 * 5} fill="url(#halo)" class="halo" data-r={m.r30 * 5} />
+          <circle cx={m.x} cy={m.y} r={m.r30} class="fill-accent core" data-r={m.r30} />
           {!m.nolabel && (
             <text x={m.x + m.dx} y={m.y + m.dy} text-anchor={m.anchor} class="font-mono fill-black dark:fill-white" font-size="15">{m.name}</text>
           )}
@@ -187,7 +188,8 @@ for (let i = 1; i < stops.length; i++) {
   }
   .city { transition: opacity 400ms ease; }
   .city.pending { opacity: 0.35; }
-  .cities, .fine { transition: opacity 300ms linear; }
+  .fine, .route, .route-faint, .cities text { transition: opacity 300ms linear; }
+  .cities.labels-off text { opacity: 0; }
   .plane { transform-box: view-box; will-change: transform; }
 
   /* Orange dots start invisible and burst in when switched on */
@@ -220,6 +222,8 @@ for (let i = 1; i < stops.length; i++) {
     const plane = fig.querySelector<SVGGElement>("g.plane")
     const citiesG = fig.querySelector<SVGGElement>("g.cities")
     const fine = fig.querySelector<SVGPathElement>("path.fine")
+    const routeFaint = fig.querySelector<SVGPathElement>("path.route-faint")
+    const discs = Array.from(fig.querySelectorAll<SVGCircleElement>("g.city circle[data-r]"))
     const track = fig.closest<HTMLElement>("[data-route-track]")
     const outro = track?.querySelector<HTMLElement>("[data-outro]") ?? null
     if (!svg || !route || !plane || !citiesG || !fine) return
@@ -286,8 +290,19 @@ for (let i = 1; i < stops.length; i++) {
       const cx = region[0] + region[2] / 2 + (worldBox[2] / 2 - (region[0] + region[2] / 2)) * q
       const cy = region[1] + region[3] / 2 + (worldBox[3] / 2 - (region[1] + region[3] / 2)) * q
       svg.setAttribute("viewBox", `${(cx - w / 2).toFixed(1)} ${(cy - h / 2).toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`)
-      citiesG.style.opacity = `${1 - clamp(q * 1.6)}`
+      // Keep line widths visually constant while the viewBox grows
+      const zoom = w / region[2]
+      route.setAttribute("stroke-width", `${1.6 * zoom}`)
+      routeFaint?.setAttribute("stroke-width", `${1 * zoom}`)
+      routeFaint?.setAttribute("stroke-dasharray", `${3 * zoom} ${5 * zoom}`)
+      // Zoomed out: hide the route and labels, keep the discs and grow them so they stay visible
+      const fade = `${1 - clamp(q * 1.6)}`
+      route.style.opacity = fade
+      if (routeFaint) routeFaint.style.opacity = fade
+      citiesG.classList.toggle("labels-off", q > 0.25)
       fine.style.opacity = `${1 - clamp(q * 2)}`
+      const grow = 1 + 2.5 * q
+      for (const c of discs) c.setAttribute("r", `${+(c.dataset.r ?? 1) * grow}`)
 
       // Phase 3: colleagues and projects pop in once the world is in view
       const on = q > 0.85
