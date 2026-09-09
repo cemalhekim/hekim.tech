@@ -12,6 +12,7 @@ import WorldMap from "@components/WorldMap.astro"
 import { SOCIALS } from "@consts"
 import { Icon } from "astro-icon/components"
 import { DICT, localePath, type Lang } from "@i18n"
+import { STACK } from "@stack"
 
 type Props = { lang: Lang }
 const { lang } = Astro.props
@@ -35,25 +36,6 @@ const capabilities = [
   { code: "04", icon: "lucide:server", tags: ["FreeCAD", "TypeScript", "Docker", "Caddy"] },
 ].map((c, i) => ({ ...c, ...t.home.caps[i] }))
 
-// Brand marks from Simple Icons (CC0) where one exists; the rest render as text.
-const stack: { name: string; icon?: string }[] = [
-  { name: "ROS 2", icon: "simple-icons:ros" },
-  { name: "Python", icon: "simple-icons:python" },
-  { name: "C++", icon: "simple-icons:cplusplus" },
-  { name: "TypeScript", icon: "simple-icons:typescript" },
-  { name: "PyTorch", icon: "simple-icons:pytorch" },
-  { name: "YOLO", icon: "simple-icons:ultralytics" },
-  { name: "OpenCV", icon: "simple-icons:opencv" },
-  { name: "MuJoCo" },
-  { name: "Gazebo" },
-  { name: "MoveIt" },
-  { name: "FreeCAD", icon: "simple-icons:freecad" },
-  { name: "Docker", icon: "simple-icons:docker" },
-  { name: "Linux", icon: "simple-icons:linux" },
-  { name: "Caddy", icon: "simple-icons:caddy" },
-  { name: "Tailscale", icon: "simple-icons:tailscale" },
-  { name: "Claude & local LLMs", icon: "simple-icons:claude" },
-]
 
 // Robots I have worked with, by class
 const robots = [
@@ -183,18 +165,25 @@ const robots = [
       </section>
 
       <!-- Stack and robots -->
-      <section class="animate grid gap-10 md:grid-cols-2">
+      <section class="animate grid gap-14">
         <div>
           <div class="label">{t.home.stackLabel}</div>
           <h2 class="mt-2 text-2xl md:text-3xl font-bold text-black dark:text-white">{t.home.stackTitle}</h2>
-          <div class="mt-6 flex flex-wrap gap-2">
-            {stack.map((t) => (
-              <span class="chip inline-flex items-center gap-1.5 !text-xs !normal-case !tracking-normal py-1 px-3 hover:border-accent hover:text-accent blend">
-                {t.icon && <Icon name={t.icon} class="size-3.5" />}
-                {t.name}
-              </span>
+          <dl class="mt-6 divide-y divide-black/10 dark:divide-white/10 border-y border-black/10 dark:border-white/10">
+            {STACK.map((g) => (
+              <div class="grid grid-cols-[120px_1fr] gap-3 py-3">
+                <dt class="font-mono text-[11px] uppercase tracking-wider text-accent pt-1">{t.home.stackGroups[g.key]}</dt>
+                <dd class="flex flex-wrap gap-1.5">
+                  {g.items.map((item) => (
+                    <span class="chip inline-flex items-center gap-1.5 !text-xs !normal-case !tracking-normal py-1 px-2.5 text-black dark:text-white hover:border-accent hover:text-accent blend">
+                      {item.icon.startsWith("/") ? <img src={item.icon} alt="" width="14" height="14" class="size-3.5 rounded-sm" loading="lazy" /> : <Icon name={item.icon} class="size-3.5" />}
+                      {item.name}
+                    </span>
+                  ))}
+                </dd>
+              </div>
             ))}
-          </div>
+          </dl>
         </div>
         <div>
           <div class="label">{t.home.robotsLabel}</div>
