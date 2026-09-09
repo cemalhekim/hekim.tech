@@ -4,8 +4,8 @@
  * Build-time SVG world map. Land outlines come from world-atlas (Natural Earth,
  * public domain) projected with d3-geo at build time: a 110m layer for the whole
  * world plus a 50m layer clipped to the Europe–Gulf region for crisp coastlines
- * while zoomed in. Both use the same opaque land colour so the overlap never
- * shows as a brighter rectangle. The SVG starts zoomed on that region; as the visitor scrolls,
+ * while zoomed in. The two are cross-faded before the zoom starts, while the
+ * viewport still equals the region, so the fine layer's clip edge never shows. The SVG starts zoomed on that region; as the visitor scrolls,
  * a flight route is drawn between the cities I have worked in, then the viewBox
  * zooms out to the world and the places of remote colleagues and projects pop
  * up as orange dots. The parent marks the scroll range with `data-route-track`
@@ -40,6 +40,8 @@ const world = [
   { name: "Munich", lon: 11.582, lat: 48.1351 },
   { name: "Mannheim", lon: 8.466, lat: 49.4875 },
   { name: "Warsaw", lon: 21.0122, lat: 52.2297 },
+  { name: "Tehran", lon: 51.389, lat: 35.6892 },
+  { name: "Kabul", lon: 69.2075, lat: 34.5553 },
   { name: "New Delhi", lon: 77.209, lat: 28.6139 },
   { name: "Beijing", lon: 116.4074, lat: 39.9042 },
   { name: "Taipei", lon: 121.5654, lat: 25.033 },
@@ -136,7 +138,7 @@ for (let i = 1; i < stops.length; i++) {
     </defs>
 
     <rect width={W} height={H} fill="url(#mapgrid)" />
-    <path d={worldPath} class="fill-[#e3e7ec] dark:fill-[#1f252d] stroke-black/25 dark:stroke-white/20" stroke-width="0.6" vector-effect="non-scaling-stroke" />
+    <path d={worldPath} class="coarse fill-[#e3e7ec] dark:fill-[#1f252d] stroke-black/25 dark:stroke-white/20" style="opacity: 0" stroke-width="0.6" vector-effect="non-scaling-stroke" />
     <path d={finePath} class="fine fill-[#e3e7ec] dark:fill-[#1f252d] stroke-black/30 dark:stroke-white/25" stroke-width="0.6" vector-effect="non-scaling-stroke" />
 
     <!-- Flight route: faint full path underneath, drawn part on top -->
@@ -190,7 +192,7 @@ for (let i = 1; i < stops.length; i++) {
   }
   .city { transition: opacity 400ms ease; }
   .city.pending { opacity: 0.35; }
-  .fine, .route, .route-faint, .cities text { transition: opacity 300ms linear; }
+  .fine, .coarse, .route, .route-faint, .cities text { transition: opacity 300ms linear; }
   .cities.labels-off text { opacity: 0; }
   .plane { transform-box: view-box; will-change: transform; }
 
@@ -224,6 +226,7 @@ for (let i = 1; i < stops.length; i++) {
     const plane = fig.querySelector<SVGGElement>("g.plane")
     const citiesG = fig.querySelector<SVGGElement>("g.cities")
     const fine = fig.querySelector<SVGPathElement>("path.fine")
+    const coarse = fig.querySelector<SVGPathElement>("path.coarse")
     const routeFaint = fig.querySelector<SVGPathElement>("path.route-faint")
     const discs = Array.from(fig.querySelectorAll<SVGCircleElement>("g.city circle[data-r]"))
     const track = fig.closest<HTMLElement>("[data-route-track]")
@@ -284,6 +287,12 @@ for (let i = 1; i < stops.length; i++) {
         g.classList.toggle("pending", len < at - 1)
       }
 
+      // Between route and zoom: swap the fine regional coastline for the coarse world one
+      // while the view still equals the region, so the fine layer's clip edge is never visible.
+      const swap = clamp((p - ROUTE_END) / (ZOOM_START - ROUTE_END))
+      fine.style.opacity = `${1 - swap}`
+      if (coarse) coarse.style.opacity = `${swap}`
+
       // Phase 2: zoom out to the world
       const q = easeInOut(clamp((p - ZOOM_START) / (1 - ZOOM_START)))
       // Interpolate the viewBox width geometrically so the zoom feels linear
@@ -302,7 +311,6 @@ for (let i = 1; i < stops.length; i++) {
       route.style.opacity = fade
       if (routeFaint) routeFaint.style.opacity = fade
       citiesG.classList.toggle("labels-off", q > 0.25)
-      fine.style.opacity = `${1 - clamp(q * 2)}`
       const grow = 1 + 2.5 * q
       for (const c of discs) c.setAttribute("r", `${+(c.dataset.r ?? 1) * grow}`)
 
