@@ -4,7 +4,8 @@
  * Build-time SVG world map. Land outlines come from world-atlas (Natural Earth,
  * public domain) projected with d3-geo at build time: a 110m layer for the whole
  * world plus a 50m layer clipped to the Europe–Gulf region for crisp coastlines
- * while zoomed in. The SVG starts zoomed on that region; as the visitor scrolls,
+ * while zoomed in. Both use the same opaque land colour so the overlap never
+ * shows as a brighter rectangle. The SVG starts zoomed on that region; as the visitor scrolls,
  * a flight route is drawn between the cities I have worked in, then the viewBox
  * zooms out to the world and the places of remote colleagues and projects pop
  * up as orange dots. The parent marks the scroll range with `data-route-track`
@@ -134,8 +135,8 @@ for (let i = 1; i < stops.length; i++) {
     </defs>
 
     <rect width={W} height={H} fill="url(#mapgrid)" />
-    <path d={worldPath} class="fill-black/[0.07] dark:fill-white/[0.08] stroke-black/25 dark:stroke-white/20" stroke-width="0.6" vector-effect="non-scaling-stroke" />
-    <path d={finePath} class="fine fill-black/[0.07] dark:fill-white/[0.08] stroke-black/30 dark:stroke-white/25" stroke-width="0.6" vector-effect="non-scaling-stroke" />
+    <path d={worldPath} class="fill-[#e3e7ec] dark:fill-[#1f252d] stroke-black/25 dark:stroke-white/20" stroke-width="0.6" vector-effect="non-scaling-stroke" />
+    <path d={finePath} class="fine fill-[#e3e7ec] dark:fill-[#1f252d] stroke-black/30 dark:stroke-white/25" stroke-width="0.6" vector-effect="non-scaling-stroke" />
 
     <!-- Flight route: faint full path underneath, drawn part on top -->
     <path d={routeD} fill="none" class="stroke-accent/20 route-faint" stroke-width="1" stroke-dasharray="3 5" />
