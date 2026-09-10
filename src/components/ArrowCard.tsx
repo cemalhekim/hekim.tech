@@ -25,6 +25,12 @@ export default function ArrowCard({ entry, pill }: Props) {
         <div class="text-sm mt-1 line-clamp-2">
           {entry.data.summary}
         </div>
+        {"metrics" in entry.data && entry.data.metrics?.[0] &&
+          <div class="mt-3 flex items-baseline gap-2">
+            <span class="font-bold tabular-nums text-accent">{entry.data.metrics[0].value}</span>
+            <span class="font-mono text-[11px] uppercase tracking-wider text-black/50 dark:text-white/50">{entry.data.metrics[0].label}</span>
+          </div>
+        }
         <ul class="flex flex-wrap mt-3 gap-1">
           {entry.data.tags.map((tag: string) => (
             <li class="chip">

@@ -53,6 +53,12 @@ const projects = defineCollection({
     draft: z.boolean().optional(),
     demoUrl: z.string().optional(),
     repoUrl: z.string().optional(),
+    // Case study: where it was built, the three-part story and 2–3 headline numbers
+    org: z.string().optional(),
+    problem: z.string().optional(),
+    approach: z.string().optional(),
+    result: z.string().optional(),
+    metrics: z.array(z.object({ value: z.string(), label: z.string() })).optional(),
   }),
 })
 

@@ -1,0 +1,46 @@
+---
+/**
+ * Stats.astro
+ * Band of headline numbers under the logo marquee. Numbers render server-side at their
+ * final value; the script counts them up from zero once the band scrolls into view.
+ */
+type Stat = { value: number; suffix?: string; label: string }
+type Props = { label: string; stats: Stat[] }
+const { label, stats } = Astro.props
+---
+
+<section aria-label={label} class="mx-auto max-w-screen-lg px-5 pb-8">
+  <dl class="grid grid-cols-2 md:grid-cols-4 border-y border-black/10 dark:border-white/10 divide-black/10 dark:divide-white/10 md:divide-x">
+    {stats.map((s, i) => (
+      <div class:list={["px-4 py-6 md:py-8 text-center", i < 2 && "border-b md:border-b-0 border-black/10 dark:border-white/10", i % 2 === 0 && "border-r md:border-r-0 border-black/10 dark:border-white/10"]}>
+        <dt class="sr-only">{s.label}</dt>
+        <dd>
+          <div class="text-3xl md:text-4xl font-bold tabular-nums text-black dark:text-white">
+            <span data-count={s.value}>{s.value}</span>{s.suffix && <span class="ml-1 text-xl md:text-2xl">{s.suffix}</span>}
+          </div>
+          <div aria-hidden="true" class="mt-2 font-mono text-[11px] uppercase tracking-wider text-black/50 dark:text-white/50">{s.label}</div>
+        </dd>
+      </div>
+    ))}
+  </dl>
+</section>
+
+<script is:inline>
+  (() => {
+    const els = document.querySelectorAll("[data-count]")
+    if (!els.length || matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return
+    const run = (el) => {
+      const end = Number(el.dataset.count), t0 = performance.now(), ms = 1400
+      const step = (t) => {
+        const p = Math.min(1, (t - t0) / ms)
+        el.textContent = String(Math.round(end * (1 - Math.pow(1 - p, 3))))
+        if (p < 1) requestAnimationFrame(step)
+      }
+      requestAnimationFrame(step)
+    }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { io.unobserve(e.target); run(e.target) } })
+    }, { threshold: 0.6 })
+    els.forEach((el) => { el.textContent = "0"; io.observe(el) })
+  })()
+</script>

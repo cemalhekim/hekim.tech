@@ -12,6 +12,12 @@ const { title, summary, date } = data
 
 const demoUrl = collection === "projects" ? data.demoUrl : null
 const repoUrl = collection === "projects" ? data.repoUrl : null
+const study = collection === "projects" ? data : null
+const steps = study ? [
+  { label: "Problem", text: study.problem },
+  { label: "Approach", text: study.approach },
+  { label: "Result", text: study.result },
+].filter((s) => s.text) : []
 ---
 
 <div>
@@ -44,6 +50,32 @@ const repoUrl = collection === "projects" ? data.repoUrl : null
   <div class="mt-1">
     {summary}
   </div>
+  {study?.org && <div class="mt-3 label">{study.org}</div>}
+  {study?.metrics && (
+    <dl class="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-px overflow-hidden rounded-lg border border-black/10 dark:border-white/10 bg-black/10 dark:bg-white/10">
+      {study.metrics.map((m) => (
+        <div class="bg-[rgb(var(--bg))] p-4">
+          <dt class="sr-only">{m.label}</dt>
+          <dd>
+            <div class="text-2xl font-bold tabular-nums text-black dark:text-white">{m.value}</div>
+            <div aria-hidden="true" class="mt-1 font-mono text-[11px] uppercase tracking-wider text-black/50 dark:text-white/50">{m.label}</div>
+          </dd>
+        </div>
+      ))}
+    </dl>
+  )}
+  {steps.length > 0 && (
+    <div class="mt-6 grid gap-4 md:grid-cols-3">
+      {steps.map((s, i) => (
+        <div class="card p-4">
+          <div class="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-accent">
+            <span>0{i + 1}</span><span>{s.label}</span>
+          </div>
+          <p class="mt-2 text-sm">{s.text}</p>
+        </div>
+      ))}
+    </div>
+  )}
   {(demoUrl || repoUrl) && 
   <div class="mt-4 flex flex-wrap gap-2">
     {demoUrl && 

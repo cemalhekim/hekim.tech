@@ -15,6 +15,7 @@ const { title, description, lang = "en" } = Astro.props
 <html lang={lang}>
   <head>
     <BaseHead title={`${title} | ${SITE.TITLE}`} description={description} />
+    <slot name="head" />
   </head>
   <body>
     <Header lang={lang} />
