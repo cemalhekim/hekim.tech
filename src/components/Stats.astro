@@ -10,9 +10,9 @@ const { label, stats } = Astro.props
 ---
 
 <section aria-label={label} class="mx-auto max-w-screen-lg px-5 pb-8">
-  <dl class="grid grid-cols-2 md:grid-cols-4 border-y border-black/10 dark:border-white/10 divide-black/10 dark:divide-white/10 md:divide-x">
-    {stats.map((s, i) => (
-      <div class:list={["px-4 py-6 md:py-8 text-center", i < 2 && "border-b md:border-b-0 border-black/10 dark:border-white/10", i % 2 === 0 && "border-r md:border-r-0 border-black/10 dark:border-white/10"]}>
+  <dl class="grid divide-x divide-black/10 dark:divide-white/10 border-y border-black/10 dark:border-white/10" style={`grid-template-columns: repeat(${stats.length}, minmax(0, 1fr))`}>
+    {stats.map((s) => (
+      <div class="px-3 md:px-4 py-6 md:py-8 text-center">
         <dt class="sr-only">{s.label}</dt>
         <dd>
           <div class="text-3xl md:text-4xl font-bold tabular-nums text-black dark:text-white">

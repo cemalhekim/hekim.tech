@@ -45,13 +45,11 @@ const robots = [
   { group: t.home.robotGroups.own, items: ["Wall-crawling robot", "Autonomous zeppelin", "Self-driving electrochemistry lab", "SunTide offshore-corrosion simulator"] },
 ]
 
-// Numbers band. 28 days = longest unattended ltms run at BAM (vault Resume/BAM Lab Automation, ## Numbers);
-// the 3 countries are Germany, Türkiye and the UAE from the work entries.
+// Numbers band. The 3 countries are Germany, Türkiye and the UAE from the work entries.
 const roles = (await getCollection("work")).length
 const stats = [
   { value: AFFILIATION_ROWS.flat().length, label: t.home.numbers.orgs },
   { value: robots.filter((r) => r.group !== t.home.robotGroups.own).reduce((n, r) => n + r.items.length, 0), label: t.home.numbers.robots },
-  { value: 28, suffix: t.home.numbers.daysUnit, label: t.home.numbers.days },
   { value: roles, label: t.home.numbers.roles },
 ]
 
