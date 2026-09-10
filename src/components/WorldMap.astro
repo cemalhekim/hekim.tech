@@ -13,9 +13,8 @@
  * The parent marks the scroll range with `data-route-track`
  * and the closing caption with `data-outro`. Set `data-progress` on the figure
  * to freeze a given progress (0..1), useful for screenshots. Below the md breakpoint
- * the map is square: the region view keeps the Europe–Gulf width and grows north and
- * south, the world view is a square around all dots, and the grid runs past the land
- * layers so the extra space reads as open sea.
+ * the region view is square (same Europe–Gulf width, taller) and the frame stretches
+ * back to the world's aspect ratio while it zooms out.
  */
 import { geoMercator, geoPath } from "d3-geo"
 import { feature } from "topojson-client"
@@ -121,12 +120,6 @@ const dots = world
   })
   .sort((a, b) => a.km - b.km)
 
-// Square world view for mobile: wide enough for every dot (California to Taipei), centred on them
-const allPts = [...marks, ...dots]
-const xs = allPts.map((p) => p.x), ys = allPts.map((p) => p.y)
-const worldSide = Math.round(Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) * 1.12)
-const worldSq = [(Math.min(...xs) + Math.max(...xs)) / 2 - worldSide / 2, (Math.min(...ys) + Math.max(...ys)) / 2 - worldSide / 2, worldSide, worldSide].map((v) => Math.round(v))
-
 // Route as quadratic arcs bulging to the left of the travel direction
 const byName = new Map(marks.map((m) => [m.name, m]))
 const stops = routeOrder.map((n) => byName.get(n)).filter((m): m is NonNullable<typeof m> => !!m)
@@ -144,7 +137,7 @@ for (let i = 1; i < stops.length; i++) {
 }
 ---
 
-<figure class="card overflow-hidden" data-worldmap data-route-order={routeOrder.join("|")} data-region={region.join(" ")} data-world={`0 0 ${W} ${H}`} data-region-sq={regionSq.join(" ")} data-world-sq={worldSq.join(" ")}>
+<figure class="card overflow-hidden" data-worldmap data-route-order={routeOrder.join("|")} data-region={region.join(" ")} data-world={`0 0 ${W} ${H}`} data-region-sq={regionSq.join(" ")}>
   <svg viewBox={region.join(" ")} class="block w-full h-auto max-md:aspect-square" role="img" aria-label="World map with the cities I have worked in, a flight route between them, and the places of colleagues and projects around the world">
     <defs>
       <radialGradient id="halo">
@@ -162,7 +155,7 @@ for (let i = 1; i < stops.length; i++) {
       </pattern>
     </defs>
 
-    <rect x={-W} y={-H} width={W * 3} height={H * 3} fill="url(#mapgrid)" />
+    <rect width={W} height={H} fill="url(#mapgrid)" />
     <path d={worldPath} class="coarse fill-[#e3e7ec] dark:fill-[#1f252d] stroke-black/25 dark:stroke-white/20" style="opacity: 0" stroke-width="0.6" vector-effect="non-scaling-stroke" />
     <path d={finePath} class="fine fill-[#e3e7ec] dark:fill-[#1f252d] stroke-black/30 dark:stroke-white/25" stroke-width="0.6" vector-effect="non-scaling-stroke" />
 
@@ -248,10 +241,9 @@ for (let i = 1; i < stops.length; i++) {
     const box = (v?: string) => (v ?? "").split(" ").map(Number)
     const square = window.matchMedia("(max-width: 767px)")
     let region = box(fig.dataset.region)
-    let worldBox = box(fig.dataset.world)
+    const worldBox = box(fig.dataset.world)
     const pickBoxes = () => {
       region = box(square.matches ? fig.dataset.regionSq : fig.dataset.region)
-      worldBox = box(square.matches ? fig.dataset.worldSq : fig.dataset.world)
     }
     pickBoxes()
     svg.setAttribute("viewBox", region.join(" "))
@@ -326,6 +318,8 @@ for (let i = 1; i < stops.length; i++) {
       const cx = region[0] + region[2] / 2 + (worldBox[0] + worldBox[2] / 2 - (region[0] + region[2] / 2)) * q
       const cy = region[1] + region[3] / 2 + (worldBox[1] + worldBox[3] / 2 - (region[1] + region[3] / 2)) * q
       svg.setAttribute("viewBox", `${(cx - w / 2).toFixed(1)} ${(cy - h / 2).toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`)
+      // The frame follows the view box: square region on mobile → wide world while zooming out
+      svg.style.aspectRatio = `${w.toFixed(1)} / ${h.toFixed(1)}`
       // Keep line widths visually constant while the viewBox grows
       const zoom = w / region[2]
       route.setAttribute("stroke-width", `${1.6 * zoom}`)
