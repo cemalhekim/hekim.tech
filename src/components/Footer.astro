@@ -26,9 +26,10 @@ const t = DICT[lang]
       </Container>
     </section>
   
-    <section class=" py-5 overflow-hidden whitespace-nowrap border-t border-black/10 dark:border-white/25">
+    <!-- One row: brand, tagline and legal on the left; status and socials on the right -->
+    <section class="py-6 border-t border-black/10 dark:border-white/25">
       <Container size="md">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="flex flex-col items-center gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div class="flex flex-col items-center sm:items-start">
             <a href={localePath(lang, "/")} class="flex items-center gap-2 w-fit font-mono text-sm text-current hover:text-accent transition-colors duration-300 ease-in-out">
               <svg class="size-6">
@@ -37,41 +38,28 @@ const t = DICT[lang]
               {SITE.TITLE}
             </a>
             <div class="mt-1 font-mono text-[11px] text-black/50 dark:text-white/50">{t.footer.tagline}</div>
-          </div>
-          <div class="flex gap-2 justify-center sm:justify-end items-center font-mono text-[11px] uppercase tracking-[0.18em] text-black/60 dark:text-white/60">
-            <span class="status-dot"></span>
-            {t.footer.status}
-          </div>
-        </div>
-      </Container>
-    </section>
-  
-    <section class=" py-5 overflow-hidden whitespace-nowrap border-t border-black/10 dark:border-white/25">
-      <Container size="md">
-        <div class="h-full grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div class="order-2 sm:order-1 flex flex-col items-center justify-center sm:items-start">
-            <div class="legal">
-              <a href="/legal/terms" class="text-current hover:text-black dark:hover:text-white transition-colors duration-300 ease-in-out">
-                {t.footer.terms}
-              </a> |
-              <a href="/legal/privacy" class="text-current hover:text-black dark:hover:text-white transition-colors duration-300 ease-in-out">
-                {t.footer.privacy}
-              </a>
-            </div>
-            <div class="text-sm mt-2 font-mono text-black/50 dark:text-white/50">
-              &copy; 2026 Cemal Hekim
+            <div class="mt-2 flex flex-wrap items-center justify-center gap-x-2 font-mono text-[11px] text-black/50 dark:text-white/50">
+              <span>&copy; 2026 Cemal Hekim</span>
+              <span aria-hidden="true">·</span>
+              <a href="/legal/terms" class="hover:text-black dark:hover:text-white blend">{t.footer.terms}</a>
+              <span aria-hidden="true">·</span>
+              <a href="/legal/privacy" class="hover:text-black dark:hover:text-white blend">{t.footer.privacy}</a>
             </div>
           </div>
-  
-          <div class="order-1 sm:order-2 flex justify-center sm:justify-end">
-            <div class="flex flex-wrap gap-1 items-center justify-center">
+
+          <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-5">
+            <div class="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-black/60 dark:text-white/60 whitespace-nowrap">
+              <span class="status-dot"></span>
+              {t.footer.status}
+            </div>
+            <div class="flex gap-1 items-center">
               {
                 SOCIALS.map((SOCIAL) => (
-                  <a 
-                    href={SOCIAL.HREF} 
-                    target="_blank" 
-                    aria-label={`${SITE.TITLE} on ${SOCIAL.NAME}`} 
-                    class="group size-10 rounded-full p-2 items-center justify-center hover:bg-black/5 dark:hover:bg-white/20  blend"
+                  <a
+                    href={SOCIAL.HREF}
+                    target="_blank"
+                    aria-label={`${SITE.TITLE} on ${SOCIAL.NAME}`}
+                    class="group size-9 rounded-full p-2 items-center justify-center hover:bg-black/5 dark:hover:bg-white/20 blend"
                   >
                     <svg class="size-full fill-current group-hover:fill-black group-hover:dark:fill-white blend">
                       <use href={`/social.svg#${SOCIAL.ICON}`} />
@@ -79,7 +67,7 @@ const t = DICT[lang]
                   </a>
                 ))
               }
-              </div>
+            </div>
           </div>
         </div>
       </Container>

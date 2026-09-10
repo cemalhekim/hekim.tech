@@ -30,9 +30,7 @@ const en = {
     ctaProjects: "Projects", ctaWork: "History",
     aboutLabel: "About",
     about: [
-      "I build <b>robots</b> and the <b>software around them</b>: humanoid telemetry and teleoperation, service-robot retrofits, lab automation cells, and LLM agents that drive all of it.",
-      "I am a robotics engineering intern at Vodafone's Innovation Campus in Düsseldorf and a master's student in Computational Engineering Science at TU Berlin, specialising in robotics and mechatronics. Before that: a robot cell for autonomous sample handling at BAM, recycling automation with UR10e and ABB arms at TU Berlin, welding robots at Koç Automotive, and a small automation start-up in Dubai.",
-      "Most of what I make ends up as a tool I keep using: an AI-assisted CAD workflow on FreeCAD, a job-search agent, a Telegram assistant, and the home server that serves this page. I like problems where the hardware, the control loop and the model have to agree.",
+      "I am a robotics engineer and a master's student in Computational Engineering Science at TU Berlin, focusing on robotics and mechatronics; I did my bachelor's there too, with a thesis that connected a local language model to a robot arm in a lab cell. I work on the parts that decide whether a robot is usable: kinematics, control and safety limits for industrial arms and humanoids, simulation in MuJoCo and Gazebo before the real robot moves, and the Python, C++ and ROS 2 code in between. At Vodafone's 5G lab in Düsseldorf I build telemetry, safe control and voice interaction for a Unitree H1-2 humanoid and a SoftBank Pepper. Before that I automated corrosion measurements at BAM, recycling processes with UR10e and ABB arms at TU Berlin and ABB spot-welding cells in automotive production, and co-founded a small automation company in Dubai.",
     ],
     whatLabel: "What I do", whatTitle: "From joint torque to language model", module: "module",
     caps: [
@@ -80,9 +78,7 @@ const de: Dict = {
     ctaProjects: "Projekte", ctaWork: "Werdegang",
     aboutLabel: "Über mich",
     about: [
-      "Ich baue <b>Roboter</b> und die <b>Software drumherum</b>: Telemetrie und Teleoperation für Humanoide, Retrofits von Servicerobotern, Automatisierungszellen im Labor und LLM-Agenten, die all das steuern.",
-      "Ich bin Robotik-Praktikant am Innovation Campus von Vodafone in Düsseldorf und Masterstudent in Computational Engineering Science an der TU Berlin mit Schwerpunkt Robotik und Mechatronik. Davor: eine Roboterzelle für autonomes Probenhandling an der BAM, Recycling-Automatisierung mit UR10e- und ABB-Armen an der TU Berlin, Schweißroboter bei Koç Automotive und ein kleines Automatisierungs-Start-up in Dubai.",
-      "Das meiste, was ich baue, wird zu einem Werkzeug, das ich weiter benutze: ein KI-gestützter CAD-Workflow auf FreeCAD, ein Agent für die Jobsuche, ein Telegram-Assistent und der Homeserver, der diese Seite ausliefert. Ich mag Probleme, bei denen Hardware, Regelkreis und Modell zusammenpassen müssen.",
+      "Ich bin Robotik-Ingenieur und studiere im Master Computational Engineering Science an der TU Berlin mit Schwerpunkt Robotik und Mechatronik; auch meinen Bachelor habe ich dort gemacht, mit einer Abschlussarbeit, die ein lokales Sprachmodell mit einem Roboterarm in einer Laborzelle verbunden hat. Ich arbeite an den Teilen, die entscheiden, ob ein Roboter brauchbar ist: Kinematik, Regelung und Sicherheitsgrenzen für Industriearme und Humanoide, Simulation in MuJoCo und Gazebo, bevor sich der echte Roboter bewegt, und der Python-, C++- und ROS-2-Code dazwischen. Im 5G-Labor von Vodafone in Düsseldorf baue ich Telemetrie, abgesicherte Steuerung und Sprachinteraktion für einen Unitree-H1-2-Humanoiden und einen SoftBank Pepper. Davor habe ich an der BAM Korrosionsmessungen automatisiert, an der TU Berlin Recyclingprozesse mit UR10e- und ABB-Armen und in der Automobilfertigung ABB-Punktschweißzellen, und in Dubai eine kleine Automatisierungsfirma mitgegründet.",
     ],
     whatLabel: "Was ich mache", whatTitle: "Vom Gelenkmoment bis zum Sprachmodell", module: "Modul",
     caps: [
@@ -128,9 +124,7 @@ const tr: Dict = {
     ctaProjects: "Projeler", ctaWork: "Geçmiş",
     aboutLabel: "Hakkımda",
     about: [
-      "<b>Robotlar</b> ve <b>etrafındaki yazılımı</b> yapıyorum: insansı robotlar için telemetri ve uzaktan kumanda, servis robotu dönüşümleri, laboratuvar otomasyon hücreleri ve hepsini süren LLM ajanları.",
-      "Vodafone'un Düsseldorf'taki Innovation Campus'ünde robotik mühendisliği stajyeriyim ve TU Berlin'de Computational Engineering Science yüksek lisansı yapıyorum; odağım robotik ve mekatronik. Öncesinde: BAM'da otonom numune taşıma için bir robot hücresi, TU Berlin'de UR10e ve ABB kollarıyla geri dönüşüm otomasyonu, Koç Otomotiv'de kaynak robotları ve Dubai'de küçük bir otomasyon girişimi.",
-      "Yaptıklarımın çoğu kullanmaya devam ettiğim birer araca dönüşüyor: FreeCAD üzerinde yapay zekâ destekli bir CAD akışı, bir iş arama ajanı, bir Telegram asistanı ve bu sayfayı sunan ev sunucusu. Donanımın, kontrol döngüsünün ve modelin uyuşmak zorunda olduğu problemleri seviyorum.",
+      "Robotik mühendisiyim ve TU Berlin'de robotik ve mekatronik odaklı Computational Engineering Science yüksek lisansı yapıyorum; lisansımı da orada, yerel bir dil modelini bir laboratuvar hücresindeki robot kola bağlayan bir tezle tamamladım. Bir robotun işe yarayıp yaramayacağını belirleyen kısımlarda çalışıyorum: endüstriyel kollar ve insansı robotlar için kinematik, kontrol ve güvenlik sınırları, gerçek robot hareket etmeden önce MuJoCo ve Gazebo'da simülasyon ve aradaki Python, C++ ve ROS 2 kodu. Vodafone'un Düsseldorf'taki 5G laboratuvarında bir Unitree H1-2 insansı robotu ve bir SoftBank Pepper için telemetri, güvenli kontrol ve sesli etkileşim geliştiriyorum. Öncesinde BAM'da korozyon ölçümlerini, TU Berlin'de UR10e ve ABB kollarıyla geri dönüşüm süreçlerini ve otomotiv üretiminde ABB punta kaynak hücrelerini otomatikleştirdim; Dubai'de de küçük bir otomasyon şirketinin kurucu ortağı oldum.",
     ],
     whatLabel: "Ne yapıyorum", whatTitle: "Eklem torkundan dil modeline", module: "modül",
     caps: [
