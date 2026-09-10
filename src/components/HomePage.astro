@@ -9,6 +9,7 @@ import PageLayout from "@layouts/PageLayout.astro"
 import ArrowCard from "@components/ArrowCard"
 import RobotHero from "@components/RobotHero.astro"
 import WorldMap from "@components/WorldMap.astro"
+import LogoMarquee from "@components/LogoMarquee.astro"
 import { SOCIALS } from "@consts"
 import { Icon } from "astro-icon/components"
 import { DICT, localePath, type Lang } from "@i18n"
@@ -79,6 +80,9 @@ const robots = [
 
     <div class="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-[rgb(var(--bg))]"></div>
   </section>
+
+  <!-- Companies and institutions, endless logo strip -->
+  <LogoMarquee label={t.home.logosLabel} />
 
   <div class="relative">
     <div class="mx-auto max-w-screen-lg px-5 space-y-28 pb-24">

@@ -1,0 +1,82 @@
+---
+/**
+ * LogoMarquee.astro
+ * Endless left-to-right strip of the logos in src/affiliations.ts. The list is rendered
+ * twice and the track slides by half its width, so the loop has no seam. Logos are
+ * CSS masks sized to equal area (compact marks capped in height), muted until hovered.
+ */
+import { AFFILIATIONS } from "@affiliations"
+
+type Props = { label: string }
+const { label } = Astro.props
+
+const AREA = 18 // em², area every logo gets
+const MAX_H = 2.5 // em, cap for square-ish marks
+const items = AFFILIATIONS.map((a) => {
+  if (!a.logo || !a.ratio) return a
+  const h = Math.min(MAX_H, Math.sqrt(AREA / a.ratio)) * (a.scale ?? 1)
+  return { ...a, h: h.toFixed(2), w: (h * a.ratio).toFixed(2) }
+})
+---
+
+<section aria-label={label} class="py-12 md:py-16">
+  <div class="label text-center">{label}</div>
+  <div class="mx-auto mt-3 h-0.5 w-10 bg-accent"></div>
+  <div class="marquee mt-10 text-[13px] md:text-base">
+    <div class="marquee-track">
+      {[0, 1].map((copy) => (
+        <ul class="marquee-set" aria-hidden={copy === 1 ? "true" : undefined}>
+          {items.map((a) => (
+            <li class="flex items-center" title={a.name}>
+              {"w" in a ? (
+                <span
+                  role="img"
+                  aria-label={a.name}
+                  class="logo block bg-black/40 dark:bg-white/45 hover:bg-[var(--brand)] dark:hover:bg-white"
+                  style={`--logo:url(/logos/${a.logo});--brand:${a.brand ?? "#000"};width:${a.w}em;height:${a.h}em`}
+                />
+              ) : (
+                <span class="whitespace-nowrap text-[1.2em] font-bold tracking-tight text-black/40 dark:text-white/45 hover:text-black dark:hover:text-white blend">
+                  {a.name}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .marquee {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+  }
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee 70s linear infinite;
+  }
+  .marquee-set {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 4em;
+    padding-right: 4em;
+  }
+  .logo {
+    -webkit-mask: var(--logo) center / contain no-repeat;
+    mask: var(--logo) center / contain no-repeat;
+    transition: background-color 300ms ease;
+  }
+  /* Content travels left to right: start one list-width to the left, end at 0 */
+  @keyframes marquee {
+    from { transform: translateX(-50%); }
+    to { transform: translateX(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track { animation-play-state: paused; }
+  }
+</style>
